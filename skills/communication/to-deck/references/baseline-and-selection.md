@@ -10,28 +10,36 @@ Save the prompt, inputs seen, model identity when known, and SHA-256. The visual
 
 The JSON contains `must_see` objects with stable IDs plus five ID sets derived from them: `semantic_required_ids`, `gist_required_ids`, `reconstruction_required_ids`, `executive_required_ids`, and `headline_required_ids`. This makes cold-read checks specific to a flow, architecture, comparison, decision, or timeline instead of forcing one universal template.
 
+## Independent visual-job maps
+
+Give both architects the same Point, baseline, constraints, open component catalog, and anchored rubric. Hide the other branch's visual jobs, component scores, ensemble, and visual grammar. Each branch maps every job to Claim IDs, model node/edge/boundary IDs, must-see IDs, criticality, intended audience, and an expected cold-read answer. Record critical relationships, critical trust boundaries, and explicit distinctions that cannot be merged.
+
+Do not let a shared preprocessor choose the dominant diagram. A and B may identify different applicable component families as long as each considers at least two and preserves all required IDs and distinctions.
+
 ## Candidate contract
 
-Each storyboard records:
+After component scoring and ensemble validation, each storyboard records:
 
     candidate_id, visual_grammar, narrative_job, headline,
-    dominant_visual, object_map, reading_order, support_blocks,
-    omissions, density_risks, accessibility_risks
+    dominant_component_id, selected_component_ids,
+    visual_grammar_signature, object_map, reading_order,
+    support_blocks, omissions, density_risks, accessibility_risks
 
-`object_map` maps every must-see baseline ID to a planned object and Point/model IDs. Candidates must differ in visual grammar, not merely color or spacing. They are blind to one another and to prior decks.
+`object_map` maps every must-see baseline ID to a planned object, selected component, Point Claim IDs, and model IDs. Candidates must differ in dominant family or in at least two material grammar dimensions; color or spacing changes do not count. They are blind to one another and to prior decks.
 
 ## Selection map
 
-Record exact hashes for the query, baseline, constraints, candidates, Point, deck, and render manifest. Include:
+Record exact hashes for the query, baseline, constraints, rubric, catalog, both visual-job maps, both score matrices, both ensembles, both candidates, component-selection audit, component gate, Point, deck, and render manifest. Include:
 
 - selected_candidate: A, B, or synthesis;
 - one coverage row per must-see baseline item;
 - strengths and rejected elements from each candidate;
 - synthesis instructions when selected;
+- selected component IDs and the independently recomputed ensemble score;
 - content hierarchy and project-lens share;
 - hard checks, critical issues, and scored justification.
 
-The selection fails if either candidate was not independent, the candidates use the same visual grammar, a must-see item lacks a selected visual object, the source project displaces the domain, or the chosen diagram is only decorative.
+The selection fails if either candidate was not independent, the candidates use the same visual grammar, the component audit was not blind, a score lacks evidence, the ensemble contains redundant support, a must-see item lacks a selected visual object, a critical relationship or boundary is lost, the source project displaces the domain, or the chosen diagram is only decorative.
 
 ## One-slide information floor
 

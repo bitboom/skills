@@ -9,9 +9,19 @@ Never overwrite a round. Use two-digit versions beginning with v01.
     ├── 01-visual-query.md
     ├── 02-visual-baseline.json
     ├── 03-constraint-map.json
+    ├── 04-component-rubric.json
+    ├── 05-visual-component-catalog.json
     ├── slides/
+    │   ├── v01-visual-jobs-a.json
+    │   ├── v01-visual-jobs-b.json
+    │   ├── v01-component-score-a.json
+    │   ├── v01-component-score-b.json
+    │   ├── v01-component-ensemble-a.json
+    │   ├── v01-component-ensemble-b.json
     │   ├── v01-candidate-a.json
     │   ├── v01-candidate-b.json
+    │   ├── v01-component-selection-audit.json
+    │   ├── v01-component-gate.json
     │   ├── v01-selection.json
     │   ├── v01-storyboard.md
     │   ├── v01-visual-model.json
@@ -31,9 +41,21 @@ Never overwrite a round. Use two-digit versions beginning with v01.
     ├── manifest.json
     └── review-trail.zip
 
-Every post-build review contains round, Point, brief, deck, render, inspection, and visual-model hashes; reviewer ID/model; author model; review-prompt hash; allowed inputs; critical issues; issues; scores; and justification. The gate rejects stale files and duplicate cold-reader identities.
+Every post-build review contains round, Point, brief, deck, render, inspection, visual-model, component-selection-audit, and component-gate hashes; reviewer ID/model; author model; review-prompt hash; allowed inputs; critical issues; issues; scores; and justification. The gate rejects stale files and duplicate cold-reader identities.
 
 Selection also records query, baseline, constraint, and candidate hashes; blind-candidate and coverage hard checks; selected candidate; must-see totals; and coverage rows.
+
+## Visual component selection
+
+The rubric and catalog are immutable run inputs. The rubric records Point, Point-model, baseline, and constraint hashes plus its source hash. It cannot contain its own file hash. The catalog adds the rubric hash and deterministic A/B candidate-seed hashes. Candidate seeds hash the branch label, Point, model, baseline, constraints, and rubric; they do not encode a visual grammar.
+
+Each A/B jobs, score, ensemble, and candidate artifact records Point, model, baseline, constraints, rubric, catalog, candidate-seed, and every causally prior branch-artifact hash. This prevents self-hash and future-output cycles. The selection audit records both actual candidate hashes and all branch artifacts. `component-gate` rejects stale or missing artifacts before slide construction; `slide-gate` revalidates the bundle and the passed component-gate hash.
+
+Every `vNN` component artifact contains the same positive integer `round`; its filename version, component-gate round, selection round, and all post-build review rounds must agree. A failed round is never overwritten. The next attempt copies the frozen run inputs and writes a complete new `vNN` artifact chain.
+
+Each visual job links Claim IDs, model node/edge/boundary IDs, must-see IDs, criticality, audience, cold-read answer, and preserved distinctions. Each component score contains anchored criterion scores with justifications, covered and uncovered IDs, risks, hard failures, and assumptions. Each ensemble records one dominant component, at most three supports, incremental baseline value for every support, exact coverage, preserved distinctions, redundancy penalty, and the recomputed score.
+
+The final visual model maps every meaning-bearing object to component IDs, baseline IDs, Point IDs, model IDs, and inspected artifact-object IDs. Decoration, page numbers, and backgrounds carry no semantic coverage. All required baseline sets and every Point/model ID selected by the ensemble must survive into the final visual-object map.
 
 Semantic review records structural totals and checked totals, dominant-visual share, causal-path checks, actor separation, proof/non-proof visibility, project hierarchy, and diagram direction errors.
 

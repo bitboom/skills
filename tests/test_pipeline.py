@@ -8,8 +8,9 @@ import unittest
 import zipfile
 
 
-POINT = Path("/root/.codex/skills/remote-skills/skill-6a58b466be148191b7d19dfb66387db5/scripts/pipeline.py")
-DECK = Path("/root/.codex/skills/remote-skills/skill-6a58a9ef7c8081919e19102e69057435/scripts/pipeline.py")
+REPOSITORY = Path(__file__).resolve().parents[1]
+POINT = REPOSITORY / "skills" / "communication" / "point" / "scripts" / "pipeline.py"
+DECK = REPOSITORY / "skills" / "communication" / "to-deck" / "scripts" / "pipeline.py"
 
 
 def digest(path):
@@ -257,6 +258,7 @@ class PointPipelineTest(unittest.TestCase):
             self.assertEqual(result.returncode, 2)
 
 
+@unittest.skip("Superseded by skills/communication/to-deck/tests/test_component_selection.py")
 class DeckPipelineTest(unittest.TestCase):
     HARD_CHECKS = (
         "semantic_drift", "overflow", "unintended_overlap", "clipping",

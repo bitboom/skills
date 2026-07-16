@@ -48,6 +48,126 @@ RENDER_HARD_CHECKS = {
     "invalid_reading_order",
 }
 
+INDIVIDUAL_COMPONENT_WEIGHTS = {
+    "semantic_coverage": 25,
+    "structural_fidelity": 20,
+    "causal_directional_boundary_expressiveness": 15,
+    "novice_developer_comprehension": 10,
+    "technical_executive_usefulness": 10,
+    "density_legibility_fit": 10,
+    "visual_hierarchy": 5,
+    "editability_accessibility": 5,
+}
+
+ENSEMBLE_WEIGHTS = {
+    "complete_must_see_coverage": 30,
+    "causal_closure_structural_correctness": 20,
+    "complementarity_incremental_value": 15,
+    "low_redundancy": 10,
+    "cognitive_load_readability": 10,
+    "one_coherent_dominant_visual_argument": 10,
+    "accessibility_editability": 5,
+}
+
+DEFAULT_DOMINANT_FAMILIES = {
+    "causal-pipeline",
+    "sequence-or-handshake-diagram",
+    "system-architecture",
+    "trust-boundary-and-data-flow-diagram",
+    "decision-tree",
+    "state-machine",
+    "lifecycle-or-timeline",
+    "layered-stack",
+    "comparison-matrix",
+    "knowledge-graph-or-topology",
+    "evidence-and-verification-chain",
+    "custom-domain-diagram",
+}
+
+DEFAULT_SUPPORTING_FAMILIES = {
+    "definition",
+    "key-characteristics",
+    "actor-legend",
+    "inputs-and-outputs",
+    "proof-and-non-proof",
+    "benefits",
+    "limitations-and-risks",
+    "decision-and-next-action",
+    "use-cases",
+    "source-project-lens",
+    "bottom-takeaway",
+}
+
+NON_SEMANTIC_FAMILIES = {"page-number", "decorative-icon", "simple-background"}
+
+VISUAL_JOB_TYPES = {
+    "definition",
+    "mechanism",
+    "actor-relationship",
+    "causal-path",
+    "sequence",
+    "trust-boundary",
+    "artifact-movement",
+    "decision-or-branching",
+    "state-transition",
+    "comparison",
+    "proof",
+    "non-proof",
+    "limitation",
+    "action",
+    "project-lens",
+}
+
+STRUCTURAL_VISUAL_JOBS = {
+    "mechanism",
+    "actor-relationship",
+    "causal-path",
+    "sequence",
+    "trust-boundary",
+    "artifact-movement",
+    "decision-or-branching",
+    "state-transition",
+}
+
+REQUIRED_COMPONENT_HARD_FAILURES = {
+    "semantic-distortion",
+    "collapsed-distinct-roles-or-boundaries",
+    "causal-or-message-direction-missing",
+    "evidence-result-action-path-broken",
+    "proof-non-proof-confused",
+    "source-project-dominates-domain",
+    "decorative-card-listing",
+    "unreadable-at-required-size",
+    "color-only-encoding",
+    "new-material-claim",
+}
+
+REQUIRED_BASELINE_SETS = (
+    "semantic_required_ids",
+    "gist_required_ids",
+    "reconstruction_required_ids",
+    "executive_required_ids",
+    "headline_required_ids",
+)
+
+COMPONENT_BUNDLE_PATHS = (
+    "point",
+    "point-model",
+    "visual-baseline",
+    "constraints",
+    "component-rubric",
+    "component-catalog",
+    "visual-jobs-a",
+    "visual-jobs-b",
+    "component-score-a",
+    "component-score-b",
+    "component-ensemble-a",
+    "component-ensemble-b",
+    "candidate-a",
+    "candidate-b",
+    "component-selection-audit",
+)
+
 
 def read_json(path: Path) -> dict:
     try:
@@ -180,6 +300,932 @@ def validate_scores(review: dict, weights: dict[str, int], label: str) -> tuple[
     return weighted, failures
 
 
+def canonical_sha256(value: object) -> str:
+    payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def require_object(value: dict, name: str) -> dict:
+    result = value.get(name)
+    if not isinstance(result, dict):
+        raise SystemExit(f"{name} must be an object")
+    return result
+
+
+def require_string(value: dict, name: str) -> str:
+    result = value.get(name)
+    if not isinstance(result, str) or not result.strip():
+        raise SystemExit(f"{name} must be a non-empty string")
+    return result
+
+
+def unique_strings(value: dict, name: str) -> list[str]:
+    result = require_list(value, name)
+    if any(not isinstance(item, str) or not item.strip() for item in result):
+        raise SystemExit(f"{name} must contain non-empty strings")
+    if len(set(result)) != len(result):
+        raise SystemExit(f"{name} must not contain duplicates")
+    return result
+
+
+def validate_hash_fields(value: dict, expected: dict[str, str], label: str) -> list[str]:
+    failures: list[str] = []
+    for name, digest in expected.items():
+        if value.get(name) != digest:
+            failures.append(f"{label} is stale for {name.removesuffix('_sha256')}")
+    return failures
+
+
+def point_id_sets(point_model: dict) -> tuple[set[str], set[str], set[str], set[str]]:
+    claims: set[str] = set()
+    for name in ("domain_core", "project_lens"):
+        values = point_model.get(name, [])
+        if not isinstance(values, list):
+            raise SystemExit(f"Point {name} must be an array")
+        for item in values:
+            if isinstance(item, dict) and isinstance(item.get("id"), str):
+                claims.add(item["id"])
+    source_map = point_model.get("source_map", {})
+    if isinstance(source_map, dict):
+        claims.update(name for name in source_map if isinstance(name, str))
+    model = require_object(point_model, "model")
+    groups: dict[str, set[str]] = {}
+    for name in ("nodes", "edges", "boundaries"):
+        values = model.get(name)
+        if not isinstance(values, list):
+            raise SystemExit(f"Point model {name} must be an array")
+        groups[name] = {
+            item["id"] for item in values
+            if isinstance(item, dict) and isinstance(item.get("id"), str)
+        }
+        if len(groups[name]) != len(values):
+            raise SystemExit(f"Point model {name} require unique string IDs")
+    return claims, groups["nodes"], groups["edges"], groups["boundaries"]
+
+
+def score_criteria(
+    value: dict,
+    weights: dict[str, int],
+    label: str,
+    minimum_each: int | None = None,
+) -> tuple[float, list[str]]:
+    criteria = require_object(value, "criteria")
+    failures: list[str] = []
+    if set(criteria) != set(weights):
+        failures.append(f"{label} criteria do not match the fixed rubric")
+    total = 0.0
+    for name, weight in weights.items():
+        row = criteria.get(name)
+        if not isinstance(row, dict):
+            raise SystemExit(f"{label}.{name} must be an object")
+        score = row.get("score")
+        justification = row.get("justification")
+        if not isinstance(score, (int, float)) or isinstance(score, bool) or not 1 <= score <= 5:
+            raise SystemExit(f"{label}.{name}.score must be from 1 to 5")
+        if not isinstance(justification, str) or not justification.strip():
+            failures.append(f"{label}.{name} lacks evidence-based justification")
+        if minimum_each is not None and score < minimum_each:
+            failures.append(f"{label}.{name} below {minimum_each}/5")
+        total += score / 5.0 * weight
+    return round(total, 2), failures
+
+
+def validate_component_rubric(rubric: dict) -> list[str]:
+    failures: list[str] = []
+    if require_object(rubric, "individual_weights") != INDIVIDUAL_COMPONENT_WEIGHTS:
+        failures.append("component rubric individual weights changed")
+    if require_object(rubric, "ensemble_weights") != ENSEMBLE_WEIGHTS:
+        failures.append("component rubric ensemble weights changed")
+    thresholds = require_object(rubric, "thresholds")
+    expected_thresholds = {
+        "dominant_component_minimum": 80,
+        "supporting_component_minimum": 70,
+        "ensemble_minimum": 90,
+        "maximum_non_diagram_support_blocks": 3,
+        "final_slide_gate_minimum": 90,
+        "final_criterion_minimum": 4,
+    }
+    for name, expected in expected_thresholds.items():
+        if thresholds.get(name) != expected:
+            failures.append(f"component rubric threshold {name} must remain {expected}")
+    hard_failures = set(unique_strings(rubric, "hard_failure_codes"))
+    if not REQUIRED_COMPONENT_HARD_FAILURES.issubset(hard_failures):
+        failures.append("component rubric omits required hard-failure codes")
+    anchors = require_object(rubric, "anchors")
+    for criterion in set(INDIVIDUAL_COMPONENT_WEIGHTS) | set(ENSEMBLE_WEIGHTS):
+        rows = anchors.get(criterion)
+        if not isinstance(rows, dict):
+            failures.append(f"component rubric lacks anchors for {criterion}")
+            continue
+        for score in range(1, 6):
+            text = rows.get(str(score))
+            if not isinstance(text, str) or not text.strip():
+                failures.append(f"component rubric lacks {criterion} anchor {score}")
+    source_hash = rubric.get("rubric_source_sha256")
+    if not isinstance(source_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", source_hash):
+        failures.append("component rubric source hash is invalid")
+    else:
+        source_path = Path(__file__).resolve().parents[1] / "references" / "component-selection.md"
+        if source_hash != sha256(source_path):
+            failures.append("component rubric source hash is stale")
+    return failures
+
+
+def component_candidate_seed(branch: str, hashes: dict[str, str]) -> str:
+    return canonical_sha256({
+        "branch": branch,
+        "point_sha256": hashes["point_sha256"],
+        "point_model_sha256": hashes["point_model_sha256"],
+        "visual_baseline_sha256": hashes["visual_baseline_sha256"],
+        "constraints_sha256": hashes["constraints_sha256"],
+        "component_rubric_sha256": hashes["component_rubric_sha256"],
+    })
+
+
+def validate_component_catalog(catalog: dict) -> tuple[list[str], dict[str, dict]]:
+    failures: list[str] = []
+    source_hash = catalog.get("catalog_source_sha256")
+    source_path = Path(__file__).resolve().parents[1] / "references" / "component-catalog.md"
+    if source_hash != sha256(source_path):
+        failures.append("visual component catalog source hash is stale")
+    if catalog.get("open_catalog") is not True:
+        failures.append("visual component catalog must remain open to custom extensions")
+    families: dict[str, dict] = {}
+    for key, role in (("dominant_families", "dominant"), ("supporting_families", "supporting")):
+        rows = require_list(catalog, key)
+        for row in rows:
+            if not isinstance(row, dict):
+                raise SystemExit(f"catalog {key} entries must be objects")
+            family_id = require_string(row, "id")
+            if family_id in families:
+                failures.append(f"catalog family {family_id} is duplicated")
+            if row.get("role") != role:
+                failures.append(f"catalog family {family_id} has the wrong role")
+            jobs = unique_strings(row, "visual_jobs")
+            if not jobs:
+                failures.append(f"catalog family {family_id} has no visual jobs")
+            if row.get("meaning_bearing") is not True:
+                failures.append(f"catalog family {family_id} must be meaning-bearing")
+            families[family_id] = row
+    if not DEFAULT_DOMINANT_FAMILIES.issubset(families):
+        failures.append("visual component catalog omits a default dominant family")
+    if not DEFAULT_SUPPORTING_FAMILIES.issubset(families):
+        failures.append("visual component catalog omits a default supporting family")
+    excluded = set(unique_strings(catalog, "non_semantic_exclusions"))
+    if not NON_SEMANTIC_FAMILIES.issubset(excluded):
+        failures.append("catalog must exclude page numbers, decorative icons, and simple backgrounds")
+    return failures, families
+
+
+def validate_visual_jobs(
+    value: dict,
+    label: str,
+    valid_claims: set[str],
+    valid_nodes: set[str],
+    valid_edges: set[str],
+    valid_boundaries: set[str],
+    must_ids: set[str],
+    required_sets: dict[str, set[str]],
+    families: dict[str, dict],
+) -> tuple[list[str], dict]:
+    failures: list[str] = []
+    jobs = require_list(value, "visual_jobs")
+    job_ids: set[str] = set()
+    covered_baseline: set[str] = set()
+    covered_claims: set[str] = set()
+    covered_model: set[str] = set()
+    critical_baseline: set[str] = set()
+    critical_job_ids: set[str] = set()
+    job_types: dict[str, str] = {}
+    job_claim_ids: dict[str, set[str]] = {}
+    job_model_ids: dict[str, set[str]] = {}
+    job_baseline_ids: dict[str, set[str]] = {}
+    valid_model = valid_nodes | valid_edges | valid_boundaries
+    for row in jobs:
+        if not isinstance(row, dict):
+            raise SystemExit(f"{label} visual jobs must be objects")
+        job_id = require_string(row, "id")
+        if job_id in job_ids:
+            failures.append(f"{label} duplicates visual job {job_id}")
+        job_ids.add(job_id)
+        job_type = require_string(row, "visual_job")
+        if job_type not in VISUAL_JOB_TYPES and not job_type.startswith("custom-"):
+            failures.append(f"{label} uses unknown visual job {job_type} without custom- prefix")
+        job_types[job_id] = job_type
+        claim_ids = set(unique_strings(row, "claim_ids"))
+        model_ids = set(unique_strings(row, "model_ids"))
+        baseline_ids = set(unique_strings(row, "baseline_ids"))
+        job_claim_ids[job_id] = claim_ids
+        job_model_ids[job_id] = model_ids
+        job_baseline_ids[job_id] = baseline_ids
+        if not claim_ids or not model_ids or not baseline_ids:
+            failures.append(f"{label} visual job {job_id} must link Claim, Model, and baseline IDs")
+        if not claim_ids.issubset(valid_claims):
+            failures.append(f"{label} visual job {job_id} references unknown Point claims")
+        if not model_ids.issubset(valid_model):
+            failures.append(f"{label} visual job {job_id} references unknown model IDs")
+        if not baseline_ids.issubset(must_ids):
+            failures.append(f"{label} visual job {job_id} references unknown baseline IDs")
+        criticality = row.get("criticality")
+        if criticality not in {"critical", "important", "supporting"}:
+            failures.append(f"{label} visual job {job_id} has invalid criticality")
+        audiences = set(unique_strings(row, "intended_audiences"))
+        if not audiences or not audiences.issubset({"novice_developer", "technical_executive"}):
+            failures.append(f"{label} visual job {job_id} has invalid intended audience")
+        require_string(row, "expected_cold_read_answer")
+        unique_strings(row, "distinction_ids")
+        covered_claims.update(claim_ids)
+        covered_model.update(model_ids)
+        covered_baseline.update(baseline_ids)
+        if criticality == "critical":
+            critical_job_ids.add(job_id)
+            critical_baseline.update(baseline_ids)
+    if must_ids - covered_baseline:
+        failures.append(f"{label} visual jobs miss baseline IDs: " + ", ".join(sorted(must_ids - covered_baseline)))
+    for name, required in required_sets.items():
+        if not required.issubset(covered_baseline):
+            failures.append(f"{label} visual jobs miss {name}")
+    critical_relationship_ids = set(unique_strings(value, "critical_relationship_ids"))
+    critical_boundary_ids = set(unique_strings(value, "critical_boundary_ids"))
+    if not critical_relationship_ids.issubset(valid_edges):
+        failures.append(f"{label} has unknown critical relationship IDs")
+    if not critical_boundary_ids.issubset(valid_boundaries):
+        failures.append(f"{label} has unknown critical boundary IDs")
+    if valid_edges and not critical_relationship_ids:
+        failures.append(f"{label} must identify critical relationships")
+    if valid_boundaries and not critical_boundary_ids:
+        failures.append(f"{label} must identify critical trust boundaries")
+    distinctions = require_list(value, "distinctions")
+    distinction_ids: set[str] = set()
+    critical_distinctions: set[str] = set()
+    distinction_sides: dict[str, tuple[set[str], set[str]]] = {}
+    valid_distinction_targets = valid_claims | valid_model
+    for row in distinctions:
+        if not isinstance(row, dict):
+            raise SystemExit(f"{label} distinctions must be objects")
+        distinction_id = require_string(row, "id")
+        if distinction_id in distinction_ids:
+            failures.append(f"{label} duplicates distinction {distinction_id}")
+        distinction_ids.add(distinction_id)
+        left = set(unique_strings(row, "left_ids"))
+        right = set(unique_strings(row, "right_ids"))
+        baseline_ids = set(unique_strings(row, "baseline_ids"))
+        if not left or not right or left & right:
+            failures.append(f"{label} distinction {distinction_id} does not separate two sides")
+        if not (left | right).issubset(valid_distinction_targets):
+            failures.append(f"{label} distinction {distinction_id} references unknown IDs")
+        if not baseline_ids or not baseline_ids.issubset(must_ids):
+            failures.append(f"{label} distinction {distinction_id} has invalid baseline IDs")
+        if row.get("critical") is True:
+            critical_distinctions.add(distinction_id)
+        distinction_sides[distinction_id] = (left, right)
+    for row in jobs:
+        if not set(row["distinction_ids"]).issubset(distinction_ids):
+            failures.append(f"{label} visual job {row['id']} references unknown distinctions")
+    required_distinctions = set(unique_strings(value, "required_distinction_ids"))
+    if required_distinctions != critical_distinctions:
+        failures.append(f"{label} required distinctions do not match critical distinctions")
+    applicable = unique_strings(value, "applicable_dominant_families")
+    if len(applicable) < 2:
+        failures.append(f"{label} must consider at least two dominant component families")
+    for family_id in applicable:
+        row = families.get(family_id)
+        if row is None or row.get("role") != "dominant":
+            failures.append(f"{label} applicable dominant family {family_id} is invalid")
+    path_rows = require_list(value, "required_causal_path")
+    expected_stages = ["evidence", "evaluation", "authenticated_result", "policy_action"]
+    actual_stages: list[str] = []
+    path_claim_ids: set[str] = set()
+    path_model_ids: set[str] = set()
+    path_baseline_ids: set[str] = set()
+    for row in path_rows:
+        if not isinstance(row, dict):
+            raise SystemExit(f"{label} required causal path rows must be objects")
+        stage = require_string(row, "stage")
+        actual_stages.append(stage)
+        claim_ids = set(unique_strings(row, "claim_ids"))
+        model_ids = set(unique_strings(row, "model_ids"))
+        baseline_ids = set(unique_strings(row, "baseline_ids"))
+        if not claim_ids or not model_ids or not baseline_ids:
+            failures.append(f"{label} causal stage {stage} must link Claim, Model, and baseline IDs")
+        if not claim_ids.issubset(valid_claims) or not model_ids.issubset(valid_model) or not baseline_ids.issubset(must_ids):
+            failures.append(f"{label} causal stage {stage} references unknown IDs")
+        path_claim_ids.update(claim_ids)
+        path_model_ids.update(model_ids)
+        path_baseline_ids.update(baseline_ids)
+    if actual_stages != expected_stages:
+        failures.append(f"{label} must preserve Evidence → evaluation → authenticated Result → policy action")
+    return failures, {
+        "job_ids": job_ids,
+        "job_types": job_types,
+        "job_claim_ids": job_claim_ids,
+        "job_model_ids": job_model_ids,
+        "job_baseline_ids": job_baseline_ids,
+        "critical_job_ids": critical_job_ids,
+        "covered_baseline": covered_baseline,
+        "covered_claims": covered_claims,
+        "covered_model": covered_model,
+        "critical_baseline": critical_baseline,
+        "critical_relationship_ids": critical_relationship_ids,
+        "critical_boundary_ids": critical_boundary_ids,
+        "distinction_ids": distinction_ids,
+        "required_distinction_ids": required_distinctions,
+        "distinction_sides": distinction_sides,
+        "applicable_dominant_families": set(applicable),
+        "path_claim_ids": path_claim_ids,
+        "path_model_ids": path_model_ids,
+        "path_baseline_ids": path_baseline_ids,
+    }
+
+
+def validate_component_scores(
+    value: dict,
+    label: str,
+    jobs: dict,
+    families: dict[str, dict],
+    valid_claims: set[str],
+    valid_model: set[str],
+    must_ids: set[str],
+    point_structural: bool,
+) -> tuple[list[str], dict[str, dict]]:
+    failures: list[str] = []
+    for name in ("other_candidate_seen", "other_scores_seen", "other_visual_grammar_seen"):
+        if value.get(name) is not False:
+            failures.append(f"{label} independence check {name} must be false")
+    considered = set(unique_strings(value, "considered_dominant_families"))
+    if considered != jobs["applicable_dominant_families"]:
+        failures.append(f"{label} did not score every applicable dominant family")
+    components: dict[str, dict] = {}
+    scored_families: set[str] = set()
+    for row in require_list(value, "components"):
+        if not isinstance(row, dict):
+            raise SystemExit(f"{label} components must be objects")
+        component_id = require_string(row, "component_id")
+        if component_id in components:
+            failures.append(f"{label} duplicates component {component_id}")
+        role = row.get("role")
+        if role not in {"dominant", "supporting"}:
+            failures.append(f"{label} component {component_id} has invalid role")
+        family_id = require_string(row, "family")
+        family = families.get(family_id)
+        if family is None:
+            extension = row.get("catalog_extension")
+            if not isinstance(extension, dict) or not str(extension.get("definition", "")).strip() or not str(extension.get("job_fit", "")).strip():
+                failures.append(f"{label} custom family {family_id} lacks an explicit catalog extension")
+        elif family.get("role") != role:
+            failures.append(f"{label} component {component_id} conflicts with catalog role")
+        if family_id in NON_SEMANTIC_FAMILIES:
+            failures.append(f"{label} scores non-semantic decoration as a component")
+        visual_job_ids = set(unique_strings(row, "visual_job_ids"))
+        if not visual_job_ids or not visual_job_ids.issubset(jobs["job_ids"]):
+            failures.append(f"{label} component {component_id} has invalid visual-job coverage")
+        covered_baseline = set(unique_strings(row, "covered_baseline_ids"))
+        covered_point = set(unique_strings(row, "covered_point_ids"))
+        covered_model = set(unique_strings(row, "covered_model_ids"))
+        if not covered_baseline.issubset(must_ids):
+            failures.append(f"{label} component {component_id} covers unknown baseline IDs")
+        if not covered_point.issubset(valid_claims):
+            failures.append(f"{label} component {component_id} covers unknown Point IDs")
+        if not covered_model.issubset(valid_model):
+            failures.append(f"{label} component {component_id} covers unknown model IDs")
+        uncovered = require_object(row, "uncovered_ids")
+        for key in ("baseline_ids", "point_ids", "model_ids"):
+            unique_strings(uncovered, key)
+        preserved = set(unique_strings(row, "preserved_distinction_ids"))
+        if not preserved.issubset(jobs["distinction_ids"]):
+            failures.append(f"{label} component {component_id} preserves unknown distinctions")
+        risks = unique_strings(row, "risks")
+        hard_failures = unique_strings(row, "hard_failures")
+        assumptions = unique_strings(row, "assumptions")
+        if not risks or not assumptions:
+            failures.append(f"{label} component {component_id} must record risks and assumptions")
+        for code in hard_failures:
+            if code not in REQUIRED_COMPONENT_HARD_FAILURES and not code.startswith("custom-"):
+                failures.append(f"{label} component {component_id} has an unregistered hard failure")
+        normalized, score_failures = score_criteria(row, INDIVIDUAL_COMPONENT_WEIGHTS, f"{label}.{component_id}")
+        failures.extend(score_failures)
+        declared = row.get("normalized_score")
+        if not isinstance(declared, (int, float)) or isinstance(declared, bool) or abs(declared - normalized) > 0.01:
+            failures.append(f"{label} component {component_id} normalized score is wrong")
+        auto_hard_failure = False
+        if point_structural and family_id in {"generic-card-grid", "card-grid", "decorative-card-grid"}:
+            auto_hard_failure = True
+            if "decorative-card-listing" not in hard_failures:
+                failures.append(f"{label} structural generic card grid lacks decorative-card-listing hard failure")
+        if role == "dominant" and point_structural:
+            types = {jobs["job_types"][job_id] for job_id in visual_job_ids}
+            if not types & STRUCTURAL_VISUAL_JOBS:
+                auto_hard_failure = True
+                failures.append(f"{label} dominant component {component_id} cannot express the structural path")
+        threshold = 80 if role == "dominant" else 70
+        expected_eligible = normalized >= threshold and not hard_failures and not auto_hard_failure
+        if row.get("eligible") is not expected_eligible:
+            failures.append(f"{label} component {component_id} eligibility conflicts with score or hard failures")
+        if role == "dominant":
+            scored_families.add(family_id)
+        components[component_id] = {
+            **row,
+            "role": role,
+            "family": family_id,
+            "visual_job_ids_set": visual_job_ids,
+            "covered_baseline_set": covered_baseline,
+            "covered_point_set": covered_point,
+            "covered_model_set": covered_model,
+            "preserved_distinction_set": preserved,
+            "calculated_score": normalized,
+            "eligible_value": expected_eligible,
+        }
+    if not considered.issubset(scored_families):
+        failures.append(f"{label} lacks a scored component for an applicable dominant family")
+    return failures, components
+
+
+def validate_component_ensemble(
+    value: dict,
+    label: str,
+    components: dict[str, dict],
+    jobs: dict,
+    required_sets: dict[str, set[str]],
+) -> tuple[list[str], dict]:
+    failures: list[str] = []
+    for name in ("other_candidate_seen", "other_scores_seen", "other_visual_grammar_seen"):
+        if value.get(name) is not False:
+            failures.append(f"{label} independence check {name} must be false")
+    dominant_id = require_string(value, "dominant_component_id")
+    supporting_ids = unique_strings(value, "supporting_component_ids")
+    selected_ids = unique_strings(value, "selected_component_ids")
+    if selected_ids != [dominant_id, *supporting_ids]:
+        failures.append(f"{label} selected components must list one dominant followed by supports")
+    if len(supporting_ids) > 3:
+        failures.append(f"{label} selects more than three supporting components")
+    if len(selected_ids) > 4:
+        failures.append(f"{label} overloads the slide with unnecessary components")
+    selected: list[dict] = []
+    for component_id in selected_ids:
+        component = components.get(component_id)
+        if component is None:
+            failures.append(f"{label} selects unknown component {component_id}")
+            continue
+        if component["eligible_value"] is not True:
+            failures.append(f"{label} selects ineligible component {component_id}")
+        selected.append(component)
+    dominant = components.get(dominant_id)
+    if dominant is not None:
+        if dominant["role"] != "dominant" or dominant["calculated_score"] < 80:
+            failures.append(f"{label} dominant component is below 80 or has the wrong role")
+    for component_id in supporting_ids:
+        component = components.get(component_id)
+        if component is not None and (component["role"] != "supporting" or component["calculated_score"] < 70):
+            failures.append(f"{label} supporting component {component_id} is below 70 or has the wrong role")
+    accumulated = set(dominant["covered_baseline_set"] if dominant is not None else set())
+    contributions = require_list(value, "support_contributions")
+    if len(contributions) != len(supporting_ids):
+        failures.append(f"{label} support contribution count is wrong")
+    contribution_by_id = {
+        row.get("component_id"): row for row in contributions if isinstance(row, dict)
+    }
+    for component_id in supporting_ids:
+        component = components.get(component_id)
+        row = contribution_by_id.get(component_id)
+        if component is None or not isinstance(row, dict):
+            continue
+        incremental = component["covered_baseline_set"] - accumulated
+        declared = set(unique_strings(row, "incremental_baseline_ids"))
+        if not incremental or declared != incremental:
+            failures.append(f"{label} support {component_id} adds no correctly declared new baseline meaning")
+        value_type = row.get("incremental_value")
+        if value_type not in {"critical_coverage", "meaningful_new_baseline"}:
+            failures.append(f"{label} support {component_id} lacks an incremental-value classification")
+        require_string(row, "justification")
+        accumulated.update(component["covered_baseline_set"])
+    coverage = require_object(value, "coverage")
+    declared_baseline = set(unique_strings(coverage, "baseline_ids"))
+    declared_point = set(unique_strings(coverage, "point_ids"))
+    declared_model = set(unique_strings(coverage, "model_ids"))
+    union_baseline = set().union(*(item["covered_baseline_set"] for item in selected)) if selected else set()
+    union_point = set().union(*(item["covered_point_set"] for item in selected)) if selected else set()
+    union_model = set().union(*(item["covered_model_set"] for item in selected)) if selected else set()
+    if declared_baseline != union_baseline or declared_point != union_point or declared_model != union_model:
+        failures.append(f"{label} declared coverage does not equal selected component coverage")
+    for name, required in required_sets.items():
+        if not required.issubset(declared_baseline):
+            failures.append(f"{label} misses required baseline set {name}")
+    if not jobs["critical_relationship_ids"].issubset(declared_model):
+        failures.append(f"{label} omits a critical relationship")
+    if not jobs["critical_boundary_ids"].issubset(declared_model):
+        failures.append(f"{label} omits a critical trust boundary")
+    if not jobs["path_claim_ids"].issubset(declared_point):
+        failures.append(f"{label} breaks the required causal path at a Point claim")
+    if not jobs["path_model_ids"].issubset(declared_model):
+        failures.append(f"{label} breaks the required causal path at a model relationship")
+    if not jobs["path_baseline_ids"].issubset(declared_baseline):
+        failures.append(f"{label} breaks the required causal path at a must-see ID")
+    preserved = set(unique_strings(value, "preserved_distinction_ids"))
+    actual_preserved = set().union(*(item["preserved_distinction_set"] for item in selected)) if selected else set()
+    if preserved != actual_preserved or not jobs["required_distinction_ids"].issubset(preserved):
+        failures.append(f"{label} collapses or omits a required distinction")
+    occurrence_count: dict[str, int] = {}
+    for component in selected:
+        for baseline_id in component["covered_baseline_set"]:
+            occurrence_count[baseline_id] = occurrence_count.get(baseline_id, 0) + 1
+    duplicate_assignments = sum(max(0, count - 1) for count in occurrence_count.values())
+    expected_penalty = min(20, duplicate_assignments * 5)
+    if value.get("redundancy_penalty") != expected_penalty:
+        failures.append(f"{label} redundancy penalty is wrong")
+    raw_score, score_failures = score_criteria(value, ENSEMBLE_WEIGHTS, label, minimum_each=4)
+    failures.extend(score_failures)
+    normalized = round(raw_score - expected_penalty, 2)
+    declared_score = value.get("ensemble_score")
+    if not isinstance(declared_score, (int, float)) or isinstance(declared_score, bool) or abs(declared_score - normalized) > 0.01:
+        failures.append(f"{label} ensemble score is wrong")
+    if normalized < 90:
+        failures.append(f"{label} ensemble score below 90")
+    if unique_strings(value, "hard_failures"):
+        failures.append(f"{label} ensemble has a hard failure")
+    if unique_strings(value, "unnecessary_component_ids"):
+        failures.append(f"{label} ensemble contains unnecessary components")
+    require_string(value, "dominant_visual_argument")
+    standard_eligible = [
+        item for item in components.values()
+        if item["role"] == "dominant" and item["family"] != "custom-domain-diagram" and item["eligible_value"]
+    ]
+    if dominant is not None and dominant["family"] == "custom-domain-diagram":
+        if standard_eligible:
+            failures.append(f"{label} uses custom fallback while an eligible standard dominant exists")
+        require_string(value, "custom_fallback_reason")
+    elif not standard_eligible:
+        failures.append(f"{label} must fall back to a custom domain diagram")
+    return failures, {
+        "dominant_component_id": dominant_id,
+        "supporting_component_ids": supporting_ids,
+        "selected_component_ids": selected_ids,
+        "coverage_baseline": declared_baseline,
+        "coverage_point": declared_point,
+        "coverage_model": declared_model,
+        "preserved_distinction_ids": preserved,
+        "distinction_sides": {
+            distinction_id: jobs["distinction_sides"][distinction_id]
+            for distinction_id in jobs["required_distinction_ids"]
+        },
+        "ensemble_score": normalized,
+    }
+
+
+def validate_storyboard_candidate(
+    value: dict,
+    label: str,
+    ensemble: dict,
+    jobs: dict,
+    must_ids: set[str],
+) -> tuple[list[str], dict]:
+    failures: list[str] = []
+    require_string(value, "visual_grammar")
+    require_string(value, "narrative_job")
+    require_string(value, "headline")
+    if value.get("dominant_component_id") != ensemble["dominant_component_id"]:
+        failures.append(f"{label} dominant component differs from its ensemble")
+    if unique_strings(value, "selected_component_ids") != ensemble["selected_component_ids"]:
+        failures.append(f"{label} selected components differ from its ensemble")
+    object_map = require_list(value, "object_map")
+    mapped_baseline: set[str] = set()
+    mapped_point: set[str] = set()
+    mapped_model: set[str] = set()
+    for row in object_map:
+        if not isinstance(row, dict):
+            raise SystemExit(f"{label} object_map rows must be objects")
+        require_string(row, "planned_object_id")
+        mapped_baseline.update(unique_strings(row, "baseline_ids"))
+        row_point = set(unique_strings(row, "point_ids"))
+        row_model = set(unique_strings(row, "model_ids"))
+        mapped_point.update(row_point)
+        mapped_model.update(row_model)
+        component_id = require_string(row, "component_id")
+        if component_id not in ensemble["selected_component_ids"]:
+            failures.append(f"{label} object map uses unselected component {component_id}")
+        if not set(row["baseline_ids"]).issubset(must_ids):
+            failures.append(f"{label} object map references unknown baseline IDs")
+        if not row_point.issubset(ensemble["coverage_point"]):
+            failures.append(f"{label} object map references unselected Point IDs")
+        if not row_model.issubset(ensemble["coverage_model"]):
+            failures.append(f"{label} object map references unselected model IDs")
+        row_semantics = row_point | row_model
+        for distinction_id in jobs["required_distinction_ids"]:
+            left, right = jobs["distinction_sides"][distinction_id]
+            if row_semantics & left and row_semantics & right:
+                failures.append(f"{label} object map collapses distinction {distinction_id}")
+    if not must_ids.issubset(mapped_baseline):
+        failures.append(f"{label} object map misses baseline IDs")
+    if not ensemble["coverage_point"].issubset(mapped_point):
+        failures.append(f"{label} object map misses selected Point IDs")
+    if not ensemble["coverage_model"].issubset(mapped_model):
+        failures.append(f"{label} object map misses selected model IDs")
+    signature = require_object(value, "visual_grammar_signature")
+    for name in ("dominant_family", "composition_pattern", "primary_encoding", "path_topology"):
+        require_string(signature, name)
+    support_blocks = require_list(value, "support_blocks")
+    if len(support_blocks) > 3:
+        failures.append(f"{label} plans more than three support blocks")
+    for name in ("reading_order", "omissions", "density_risks", "accessibility_risks"):
+        unique_strings(value, name)
+    return failures, {"signature": signature, "mapped_baseline": mapped_baseline}
+
+
+def materially_different_grammar(a: dict, b: dict) -> bool:
+    fields = ("dominant_family", "composition_pattern", "primary_encoding", "path_topology")
+    differences = sum(a.get(name) != b.get(name) for name in fields)
+    return a.get("dominant_family") != b.get("dominant_family") or differences >= 2
+
+
+def validate_component_selection_bundle(paths: dict[str, Path]) -> tuple[list[str], dict]:
+    failures: list[str] = []
+    round_artifact_keys = (
+        "visual_jobs_a", "visual_jobs_b", "component_score_a", "component_score_b",
+        "component_ensemble_a", "component_ensemble_b", "candidate_a", "candidate_b",
+        "component_selection_audit",
+    )
+    artifact_rounds: dict[str, int] = {}
+    for key in round_artifact_keys:
+        value = read_json(paths[key])
+        round_value = value.get("round")
+        if not isinstance(round_value, int) or isinstance(round_value, bool) or round_value < 1:
+            failures.append(f"{key} has no valid immutable round")
+        else:
+            artifact_rounds[key] = round_value
+    distinct_rounds = set(artifact_rounds.values())
+    if len(artifact_rounds) != len(round_artifact_keys) or len(distinct_rounds) != 1:
+        failures.append("visual component artifacts do not share one immutable round")
+    bundle_round = next(iter(distinct_rounds)) if len(distinct_rounds) == 1 else None
+    point_model = read_yaml(paths["point_model"])
+    baseline = read_json(paths["visual_baseline"])
+    must_see = require_list(baseline, "must_see")
+    must_ids = {
+        row.get("id") for row in must_see
+        if isinstance(row, dict) and isinstance(row.get("id"), str)
+    }
+    if len(must_ids) != len(must_see) or not must_ids:
+        failures.append("visual baseline must-see IDs are missing or duplicated")
+    required_sets: dict[str, set[str]] = {}
+    for name in REQUIRED_BASELINE_SETS:
+        required_sets[name] = set(unique_strings(baseline, name))
+        if not required_sets[name].issubset(must_ids):
+            failures.append(f"visual baseline {name} contains invalid IDs")
+    valid_claims, valid_nodes, valid_edges, valid_boundaries = point_id_sets(point_model)
+    valid_model = valid_nodes | valid_edges | valid_boundaries
+    point_structural = len(valid_nodes) >= 3 or len(valid_edges) >= 2
+    hashes = {
+        "point_sha256": sha256(paths["point"]),
+        "point_model_sha256": sha256(paths["point_model"]),
+        "visual_baseline_sha256": sha256(paths["visual_baseline"]),
+        "constraints_sha256": sha256(paths["constraints"]),
+        "component_rubric_sha256": sha256(paths["component_rubric"]),
+        "component_catalog_sha256": sha256(paths["component_catalog"]),
+    }
+    rubric = read_json(paths["component_rubric"])
+    failures.extend(validate_hash_fields(rubric, {
+        name: hashes[name] for name in (
+            "point_sha256", "point_model_sha256", "visual_baseline_sha256", "constraints_sha256"
+        )
+    }, "component rubric"))
+    failures.extend(validate_component_rubric(rubric))
+    catalog = read_json(paths["component_catalog"])
+    failures.extend(validate_hash_fields(catalog, {
+        name: hashes[name] for name in (
+            "point_sha256", "point_model_sha256", "visual_baseline_sha256",
+            "constraints_sha256", "component_rubric_sha256",
+        )
+    }, "component catalog"))
+    catalog_failures, families = validate_component_catalog(catalog)
+    failures.extend(catalog_failures)
+    seeds = {branch: component_candidate_seed(branch, hashes) for branch in ("A", "B")}
+    if catalog.get("candidate_seed_sha256") != seeds:
+        failures.append("component catalog candidate seed hashes are stale")
+    jobs_values: dict[str, dict] = {}
+    jobs_summaries: dict[str, dict] = {}
+    score_values: dict[str, dict] = {}
+    component_maps: dict[str, dict[str, dict]] = {}
+    ensemble_values: dict[str, dict] = {}
+    ensemble_summaries: dict[str, dict] = {}
+    candidate_values: dict[str, dict] = {}
+    candidate_summaries: dict[str, dict] = {}
+    branch_paths = {
+        "A": ("visual_jobs_a", "component_score_a", "component_ensemble_a", "candidate_a"),
+        "B": ("visual_jobs_b", "component_score_b", "component_ensemble_b", "candidate_b"),
+    }
+    base_expected = {
+        name: hashes[name] for name in (
+            "point_sha256", "point_model_sha256", "visual_baseline_sha256",
+            "constraints_sha256", "component_rubric_sha256", "component_catalog_sha256",
+        )
+    }
+    for branch, (jobs_key, score_key, ensemble_key, candidate_key) in branch_paths.items():
+        jobs = read_json(paths[jobs_key])
+        jobs_values[branch] = jobs
+        expected = {**base_expected, "candidate_seed_sha256": seeds[branch]}
+        failures.extend(validate_hash_fields(jobs, expected, f"visual jobs {branch}"))
+        branch_failures, jobs_summary = validate_visual_jobs(
+            jobs, f"visual jobs {branch}", valid_claims, valid_nodes, valid_edges,
+            valid_boundaries, must_ids, required_sets, families,
+        )
+        failures.extend(branch_failures)
+        jobs_summaries[branch] = jobs_summary
+        scores = read_json(paths[score_key])
+        score_values[branch] = scores
+        expected_scores = {**expected, "visual_jobs_sha256": sha256(paths[jobs_key])}
+        failures.extend(validate_hash_fields(scores, expected_scores, f"component scores {branch}"))
+        score_failures, component_map = validate_component_scores(
+            scores, f"component scores {branch}", jobs_summary, families,
+            valid_claims, valid_model, must_ids, point_structural,
+        )
+        failures.extend(score_failures)
+        component_maps[branch] = component_map
+        ensemble = read_json(paths[ensemble_key])
+        ensemble_values[branch] = ensemble
+        expected_ensemble = {**expected_scores, "component_score_sha256": sha256(paths[score_key])}
+        failures.extend(validate_hash_fields(ensemble, expected_ensemble, f"component ensemble {branch}"))
+        ensemble_failures, ensemble_summary = validate_component_ensemble(
+            ensemble, f"component ensemble {branch}", component_map, jobs_summary,
+            {**required_sets, "complete_must_see_coverage": must_ids},
+        )
+        failures.extend(ensemble_failures)
+        ensemble_summaries[branch] = ensemble_summary
+        candidate = read_json(paths[candidate_key])
+        candidate_values[branch] = candidate
+        expected_candidate = {
+            **expected_ensemble,
+            "component_ensemble_sha256": sha256(paths[ensemble_key]),
+        }
+        failures.extend(validate_hash_fields(candidate, expected_candidate, f"candidate {branch}"))
+        candidate_failures, candidate_summary = validate_storyboard_candidate(
+            candidate, f"candidate {branch}", ensemble_summary, jobs_summary, must_ids,
+        )
+        failures.extend(candidate_failures)
+        candidate_summaries[branch] = candidate_summary
+    if not materially_different_grammar(
+        candidate_summaries["A"]["signature"], candidate_summaries["B"]["signature"]
+    ):
+        failures.append("storyboard candidates use the same visual grammar")
+    audit = read_json(paths["component_selection_audit"])
+    audit_expected = {
+        **base_expected,
+        "visual_jobs_a_sha256": sha256(paths["visual_jobs_a"]),
+        "visual_jobs_b_sha256": sha256(paths["visual_jobs_b"]),
+        "component_score_a_sha256": sha256(paths["component_score_a"]),
+        "component_score_b_sha256": sha256(paths["component_score_b"]),
+        "component_ensemble_a_sha256": sha256(paths["component_ensemble_a"]),
+        "component_ensemble_b_sha256": sha256(paths["component_ensemble_b"]),
+        "candidate_a_sha256": sha256(paths["candidate_a"]),
+        "candidate_b_sha256": sha256(paths["candidate_b"]),
+    }
+    failures.extend(validate_hash_fields(audit, audit_expected, "component selection audit"))
+    for name in (
+        "candidate_names_hidden", "author_information_hidden",
+        "author_aggregate_scores_hidden", "score_evidence_verified",
+        "semantic_fidelity_rechecked", "redundancy_rechecked",
+    ):
+        if audit.get(name) is not True:
+            failures.append(f"component selection audit {name} must be true")
+    if unique_strings(audit, "hard_failures"):
+        failures.append("component selection audit has hard failures")
+    if unique_strings(audit, "critical_issues"):
+        failures.append("component selection audit has critical issues")
+    recomputed = require_object(audit, "recomputed_scores")
+    for branch in ("A", "B"):
+        branch_scores = require_object(recomputed, branch)
+        component_scores = require_object(branch_scores, "components")
+        expected_component_scores = {
+            component_id: row["calculated_score"]
+            for component_id, row in component_maps[branch].items()
+        }
+        if component_scores != expected_component_scores:
+            failures.append(f"component selection audit recomputed component scores for {branch} are wrong")
+        if branch_scores.get("ensemble") != ensemble_summaries[branch]["ensemble_score"]:
+            failures.append(f"component selection audit recomputed ensemble score for {branch} is wrong")
+    audited_coverage = set(unique_strings(audit, "verified_baseline_ids"))
+    if audited_coverage != must_ids:
+        failures.append("component selection audit does not verify every must-see baseline ID")
+    selected_candidate = audit.get("selected_candidate")
+    if selected_candidate not in {"A", "B", "synthesis"}:
+        failures.append("component selection audit selected_candidate is invalid")
+    require_string(audit, "selection_reason")
+    if selected_candidate in {"A", "B"}:
+        chosen = ensemble_summaries[selected_candidate]
+    else:
+        synthesis = require_object(audit, "synthesis")
+        adopted_components = unique_strings(synthesis, "adopted_components")
+        rejected_components = unique_strings(synthesis, "rejected_components")
+        if not adopted_components or not rejected_components:
+            failures.append("component synthesis must record adopted and rejected components")
+        decisions = require_list(synthesis, "component_decisions")
+        decision_ids: set[str] = set()
+        for row in decisions:
+            if not isinstance(row, dict):
+                raise SystemExit("component synthesis decisions must be objects")
+            component_id = require_string(row, "component_id")
+            decision_ids.add(component_id)
+            if row.get("decision") not in {"adopt", "reject"}:
+                failures.append(f"component synthesis decision for {component_id} is invalid")
+            require_string(row, "reason")
+        if decision_ids != set(adopted_components) | set(rejected_components):
+            failures.append("component synthesis decisions do not explain every adoption and rejection")
+        merged_components: dict[str, dict] = {}
+        for branch in ("A", "B"):
+            for component_id, component in component_maps[branch].items():
+                if component_id in merged_components:
+                    failures.append(f"component synthesis has ambiguous component ID {component_id}")
+                merged_components[component_id] = component
+        dominant_id = require_string(synthesis, "dominant_component_id")
+        supporting_ids = unique_strings(synthesis, "supporting_component_ids")
+        selected_ids = unique_strings(synthesis, "selected_component_ids")
+        if selected_ids != [dominant_id, *supporting_ids] or adopted_components != selected_ids:
+            failures.append("component synthesis selection does not match its adopted components")
+        if len(supporting_ids) > 3:
+            failures.append("component synthesis selects more than three supporting components")
+        selected_components = [merged_components[item] for item in selected_ids if item in merged_components]
+        if len(selected_components) != len(selected_ids):
+            failures.append("component synthesis selects an unknown component")
+        for component in selected_components:
+            if not component["eligible_value"]:
+                failures.append(f"component synthesis selects ineligible component {component['component_id']}")
+        dominant = merged_components.get(dominant_id)
+        if dominant is not None and dominant["role"] != "dominant":
+            failures.append("component synthesis dominant component has the wrong role")
+        if any(merged_components[item]["role"] != "supporting" for item in supporting_ids if item in merged_components):
+            failures.append("component synthesis support has the wrong role")
+        contributions = require_list(synthesis, "support_contributions")
+        contribution_by_id = {
+            row.get("component_id"): row for row in contributions if isinstance(row, dict)
+        }
+        accumulated = set(dominant["covered_baseline_set"] if dominant is not None else set())
+        if len(contributions) != len(supporting_ids):
+            failures.append("component synthesis support contribution count is wrong")
+        for component_id in supporting_ids:
+            component = merged_components.get(component_id)
+            row = contribution_by_id.get(component_id)
+            if component is None or not isinstance(row, dict):
+                continue
+            incremental = component["covered_baseline_set"] - accumulated
+            if set(unique_strings(row, "incremental_baseline_ids")) != incremental or not incremental:
+                failures.append(f"component synthesis support {component_id} adds no new baseline meaning")
+            if row.get("incremental_value") not in {"critical_coverage", "meaningful_new_baseline"}:
+                failures.append(f"component synthesis support {component_id} lacks incremental value")
+            require_string(row, "justification")
+            accumulated.update(component["covered_baseline_set"])
+        raw_synthesis_score, synthesis_score_failures = score_criteria(
+            synthesis, ENSEMBLE_WEIGHTS, "component synthesis", minimum_each=4,
+        )
+        failures.extend(synthesis_score_failures)
+        occurrence_count: dict[str, int] = {}
+        for component in selected_components:
+            for baseline_id in component["covered_baseline_set"]:
+                occurrence_count[baseline_id] = occurrence_count.get(baseline_id, 0) + 1
+        expected_penalty = min(20, sum(max(0, count - 1) for count in occurrence_count.values()) * 5)
+        if synthesis.get("redundancy_penalty") != expected_penalty:
+            failures.append("component synthesis redundancy penalty is wrong")
+        expected_score = round(raw_synthesis_score - expected_penalty, 2)
+        if synthesis.get("ensemble_score") != expected_score or expected_score < 90:
+            failures.append("component synthesis ensemble score below 90")
+        synthesis_coverage = set(unique_strings(synthesis, "baseline_ids"))
+        synthesis_point = set(unique_strings(synthesis, "point_ids"))
+        synthesis_model = set(unique_strings(synthesis, "model_ids"))
+        union_baseline = set().union(*(item["covered_baseline_set"] for item in selected_components)) if selected_components else set()
+        union_point = set().union(*(item["covered_point_set"] for item in selected_components)) if selected_components else set()
+        union_model = set().union(*(item["covered_model_set"] for item in selected_components)) if selected_components else set()
+        if synthesis_coverage != must_ids or synthesis_coverage != union_baseline:
+            failures.append("component synthesis misses must-see baseline IDs")
+        if synthesis_point != union_point or synthesis_model != union_model:
+            failures.append("component synthesis coverage does not equal adopted component coverage")
+        required_relationships = set().union(*(jobs_summaries[branch]["critical_relationship_ids"] for branch in ("A", "B")))
+        required_boundaries = set().union(*(jobs_summaries[branch]["critical_boundary_ids"] for branch in ("A", "B")))
+        if not required_relationships.issubset(synthesis_model) or not required_boundaries.issubset(synthesis_model):
+            failures.append("component synthesis omits a critical relationship or trust boundary")
+        required_distinctions = set().union(*(jobs_summaries[branch]["required_distinction_ids"] for branch in ("A", "B")))
+        if not required_distinctions.issubset(set(unique_strings(synthesis, "preserved_distinction_ids"))):
+            failures.append("component synthesis collapses a required distinction")
+        if unique_strings(synthesis, "hard_failures") or unique_strings(synthesis, "unnecessary_component_ids"):
+            failures.append("component synthesis has hard failures or unnecessary components")
+        chosen = {
+            "selected_component_ids": selected_ids,
+            "coverage_baseline": synthesis_coverage,
+            "coverage_point": synthesis_point,
+            "coverage_model": synthesis_model,
+            "ensemble_score": synthesis.get("ensemble_score"),
+            "distinction_sides": {
+                distinction_id: sides
+                for branch in ("A", "B")
+                for distinction_id, sides in ensemble_summaries[branch]["distinction_sides"].items()
+            },
+        }
+    return failures, {
+        "round": bundle_round,
+        "hashes": hashes,
+        "candidate_seeds": seeds,
+        "selected_candidate": selected_candidate,
+        "selected_ensemble": chosen,
+        "audit_sha256": sha256(paths["component_selection_audit"]),
+        "must_ids": must_ids,
+    }
+
+
 def command_init(args: argparse.Namespace) -> int:
     root = Path(args.root).resolve()
     if root.exists() and any(root.iterdir()):
@@ -212,11 +1258,48 @@ def command_init(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_component_gate(args: argparse.Namespace) -> int:
+    paths = {
+        name.replace("-", "_"): Path(getattr(args, name.replace("-", "_"))).resolve()
+        for name in COMPONENT_BUNDLE_PATHS
+    }
+    failures = verify_point_package(
+        paths["point"],
+        paths["point_model"],
+        Path(args.point_hash_file).resolve(),
+        Path(args.point_gate).resolve(),
+    )
+    component_failures, summary = validate_component_selection_bundle(paths)
+    failures.extend(component_failures)
+    if summary["round"] != args.round:
+        failures.append("component gate round does not match the immutable artifact round")
+    artifact_hashes = {
+        f"{name.replace('-', '_')}_sha256": sha256(Path(getattr(args, name.replace("-", "_"))).resolve())
+        for name in COMPONENT_BUNDLE_PATHS
+    }
+    result = {
+        "gate": "visual-component-selection",
+        "round": args.round,
+        "passed": not failures,
+        **artifact_hashes,
+        "selected_candidate": summary["selected_candidate"],
+        "selected_ensemble_score": summary["selected_ensemble"]["ensemble_score"],
+        "selected_component_ids": summary["selected_ensemble"]["selected_component_ids"],
+        "failures": failures,
+    }
+    write_json(Path(args.output), result)
+    print(json.dumps(result, ensure_ascii=False))
+    return 0 if result["passed"] else 2
+
+
 def command_slide_gate(args: argparse.Namespace) -> int:
     paths = {name: Path(getattr(args, name.replace("-", "_"))).resolve() for name in (
         "point", "point-model", "point-hash-file", "point-gate", "deck",
         "render-manifest", "deck-inspect", "visual-query", "visual-baseline",
-        "brief", "constraints", "candidate-a", "candidate-b", "visual-model",
+        "brief", "constraints", "component-rubric", "component-catalog",
+        "visual-jobs-a", "visual-jobs-b", "component-score-a", "component-score-b",
+        "component-ensemble-a", "component-ensemble-b", "candidate-a", "candidate-b",
+        "component-selection-audit", "component-gate", "visual-model",
     )}
     hashes = {name.replace("-", "_") + "_sha256": sha256(path) for name, path in paths.items()}
     reviews = {name: read_json(Path(getattr(args, name))) for name in (
@@ -226,6 +1309,28 @@ def command_slide_gate(args: argparse.Namespace) -> int:
     failures.extend(verify_point_package(
         paths["point"], paths["point-model"], paths["point-hash-file"], paths["point-gate"]
     ))
+    component_paths = {
+        name.replace("-", "_"): paths[name]
+        for name in COMPONENT_BUNDLE_PATHS
+    }
+    component_failures, component_summary = validate_component_selection_bundle(component_paths)
+    failures.extend(component_failures)
+    component_gate = read_json(paths["component-gate"])
+    if component_gate.get("passed") is not True:
+        failures.append("visual component selection gate did not pass")
+    component_gate_hash_names = {
+        f"{name.replace('-', '_')}_sha256": sha256(paths[name])
+        for name in COMPONENT_BUNDLE_PATHS
+    }
+    for name, digest in component_gate_hash_names.items():
+        if component_gate.get(name) != digest:
+            failures.append(f"visual component selection gate is stale for {name.removesuffix('_sha256')}")
+    if component_gate.get("selected_candidate") != component_summary["selected_candidate"]:
+        failures.append("visual component selection gate selected candidate is stale")
+    if component_gate.get("selected_component_ids") != component_summary["selected_ensemble"]["selected_component_ids"]:
+        failures.append("visual component selection gate selected components are stale")
+    if component_gate.get("round") != component_summary["round"]:
+        failures.append("visual component selection gate round is stale")
     point_model = read_yaml(paths["point-model"])
     model = point_model.get("model")
     if not isinstance(model, dict):
@@ -237,6 +1342,8 @@ def command_slide_gate(args: argparse.Namespace) -> int:
         if not isinstance(value, list):
             raise SystemExit(f"Point model {name} must be an array")
     point_structural = len(point_nodes) >= 3 or len(point_edges) >= 2
+    valid_claims, valid_node_ids, valid_edge_ids, valid_boundary_ids = point_id_sets(point_model)
+    valid_model_ids = valid_node_ids | valid_edge_ids | valid_boundary_ids
     brief = read_yaml(paths["brief"])
 
     slide_count = pptx_slide_count(paths["deck"])
@@ -281,6 +1388,10 @@ def command_slide_gate(args: argparse.Namespace) -> int:
     if not isinstance(objects, list) or not objects:
         raise SystemExit("visual model objects must be a non-empty array")
     mapped_baseline: set[str] = set()
+    mapped_point: set[str] = set()
+    mapped_model: set[str] = set()
+    mapped_components: set[str] = set()
+    artifact_semantics: dict[str, set[str]] = {}
     semantic_records: list[dict] = []
     semantic_kinds = {"node", "connector", "boundary"}
     kind_counts = {kind: 0 for kind in semantic_kinds}
@@ -288,26 +1399,65 @@ def command_slide_gate(args: argparse.Namespace) -> int:
         if not isinstance(item, dict):
             raise SystemExit("visual model object must be an object")
         baseline_ids = item.get("baseline_ids", [])
+        point_ids = item.get("point_ids", [])
+        model_ids = item.get("model_ids", [])
+        component_ids = item.get("component_ids", [])
         artifact_ids = item.get("artifact_object_ids", [])
-        if not isinstance(baseline_ids, list) or not isinstance(artifact_ids, list):
+        if any(not isinstance(values, list) for values in (baseline_ids, point_ids, model_ids, component_ids, artifact_ids)):
             raise SystemExit("visual model mappings must be arrays")
         mapped_baseline.update(value for value in baseline_ids if isinstance(value, str))
+        mapped_point.update(value for value in point_ids if isinstance(value, str))
+        mapped_model.update(value for value in model_ids if isinstance(value, str))
+        mapped_components.update(value for value in component_ids if isinstance(value, str))
         kind = item.get("kind")
+        if kind in {"decoration", "page-number", "background", "decorative-icon"}:
+            if baseline_ids or point_ids or model_ids or component_ids:
+                failures.append(f"non-semantic visual object {item.get('id')} cannot claim coverage")
+        elif not baseline_ids and not point_ids and not model_ids:
+            failures.append(f"meaning-bearing visual object {item.get('id')} has no semantic mapping")
+        elif not artifact_ids:
+            failures.append(f"meaning-bearing visual object {item.get('id')} has no inspected artifact object")
+        if not set(point_ids).issubset(valid_claims):
+            failures.append(f"visual object {item.get('id')} references unknown Point IDs")
+        if not set(model_ids).issubset(valid_model_ids):
+            failures.append(f"visual object {item.get('id')} references unknown model IDs")
+        if not set(baseline_ids).issubset(must_ids):
+            failures.append(f"visual object {item.get('id')} references unknown baseline IDs")
+        for artifact_id in artifact_ids:
+            if artifact_id not in inspect_by_id:
+                failures.append(f"visual object {artifact_id} is absent from deck inspection")
         if kind in semantic_kinds:
             kind_counts[kind] += 1
             if not artifact_ids:
                 failures.append(f"semantic visual object {item.get('id')} has no artifact object")
             for artifact_id in artifact_ids:
                 record = inspect_by_id.get(artifact_id)
-                if record is None:
-                    failures.append(f"visual object {artifact_id} is absent from deck inspection")
-                elif record.get("kind") == "textbox" and kind in {"connector", "boundary"}:
+                if record is not None and record.get("kind") == "textbox" and kind in {"connector", "boundary"}:
                     failures.append(f"{kind} {artifact_id} cannot be a textbox")
-                elif isinstance(record.get("bbox"), list) and len(record["bbox"]) == 4:
+                elif record is not None and isinstance(record.get("bbox"), list) and len(record["bbox"]) == 4:
                     semantic_records.append(record)
+        for artifact_id in artifact_ids:
+            artifact_semantics.setdefault(artifact_id, set()).update(
+                value for value in [*point_ids, *model_ids] if isinstance(value, str)
+            )
     missing_must = must_ids - mapped_baseline
     if missing_must:
         failures.append("visual model misses baseline IDs: " + ", ".join(sorted(missing_must)))
+    chosen_ensemble = component_summary["selected_ensemble"]
+    for distinction_id, (left, right) in chosen_ensemble["distinction_sides"].items():
+        for artifact_id, semantic_ids in artifact_semantics.items():
+            if semantic_ids & left and semantic_ids & right:
+                failures.append(
+                    f"artifact object {artifact_id} collapses required distinction {distinction_id}"
+                )
+    if not chosen_ensemble["coverage_point"].issubset(mapped_point):
+        failures.append("visual model misses Point IDs selected by the component ensemble")
+    if not chosen_ensemble["coverage_model"].issubset(mapped_model):
+        failures.append("visual model misses model IDs selected by the component ensemble")
+    if not set(chosen_ensemble["selected_component_ids"]).issubset(mapped_components):
+        failures.append("visual model misses a selected visual component")
+    if not mapped_components.issubset(set(chosen_ensemble["selected_component_ids"])):
+        failures.append("visual model references a component outside the selected ensemble")
     if point_structural and kind_counts["connector"] < 2:
         failures.append("structural Point requires at least two real connector objects")
     if point_boundaries and kind_counts["boundary"] < 1:
@@ -326,7 +1476,13 @@ def command_slide_gate(args: argparse.Namespace) -> int:
     selection = reviews["selection"]
     if selection.get("point_sha256") != hashes["point_sha256"]:
         failures.append("selection is stale for Point")
-    for name in ("visual_query", "visual_baseline", "brief", "constraints", "candidate_a", "candidate_b", "visual_model"):
+    for name in (
+        "visual_query", "visual_baseline", "brief", "constraints", "component_rubric",
+        "component_catalog", "visual_jobs_a", "visual_jobs_b", "component_score_a",
+        "component_score_b", "component_ensemble_a", "component_ensemble_b",
+        "candidate_a", "candidate_b", "component_selection_audit", "component_gate",
+        "visual_model",
+    ):
         if selection.get(f"{name}_sha256") != hashes[f"{name}_sha256"]:
             failures.append(f"selection {name}_sha256 is stale")
     if require_list(selection, "critical_issues"):
@@ -337,12 +1493,18 @@ def command_slide_gate(args: argparse.Namespace) -> int:
     for name in (
         "candidate_a_blind", "candidate_b_blind", "candidate_visual_grammars_distinct",
         "prior_deck_hidden", "selection_reasoned", "dominant_diagram_selected",
-        "project_lens_secondary", "no_new_claims",
+        "project_lens_secondary", "no_new_claims", "visual_component_selection_completed",
+        "selection_audit_blind", "ensemble_threshold_met", "component_redundancy_zero",
+        "component_hard_failures_zero",
     ):
         if selection_hard.get(name) is not True:
             failures.append(f"selection hard check {name} must be true")
     if selection.get("selected_candidate") not in {"A", "B", "synthesis"}:
         failures.append("selected_candidate must be A, B, or synthesis")
+    if selection.get("selected_candidate") != component_summary["selected_candidate"]:
+        failures.append("selection disagrees with the component selection audit")
+    if selection.get("selected_component_ids") != component_summary["selected_ensemble"]["selected_component_ids"]:
+        failures.append("selection selected components disagree with the chosen ensemble")
     must_total = len(must_ids)
     must_mapped = selection.get("must_see_mapped")
     if selection.get("must_see_total") != must_total or must_mapped != must_total:
@@ -359,6 +1521,7 @@ def command_slide_gate(args: argparse.Namespace) -> int:
         for hash_name in (
             "point_sha256", "point_model_sha256", "brief_sha256", "deck_sha256",
             "render_manifest_sha256", "deck_inspect_sha256", "visual_model_sha256",
+            "component_selection_audit_sha256", "component_gate_sha256",
         ):
             if review.get(hash_name) != hashes[hash_name]:
                 failures.append(f"{label} review is stale for {hash_name.removesuffix('_sha256')}")
@@ -376,6 +1539,8 @@ def command_slide_gate(args: argparse.Namespace) -> int:
     rounds = {reviews[label].get("round") for label in reviews}
     if len(rounds) != 1 or None in rounds:
         failures.append("reviews do not share one valid round")
+    elif component_gate.get("round") not in rounds:
+        failures.append("component artifacts, component gate, and reviews do not share one immutable round")
 
     semantic = reviews["semantic"]
     elements = semantic.get("structural_elements")
@@ -499,6 +1664,7 @@ def command_slide_gate(args: argparse.Namespace) -> int:
         for hash_name in (
             "point_sha256", "point_model_sha256", "brief_sha256", "deck_sha256",
             "render_manifest_sha256", "deck_inspect_sha256", "visual_model_sha256",
+            "component_selection_audit_sha256", "component_gate_sha256",
         ):
             if regression.get(hash_name) != hashes[hash_name]:
                 failures.append(f"regression review is stale for {hash_name.removesuffix('_sha256')}")
@@ -536,6 +1702,7 @@ def command_slide_gate(args: argparse.Namespace) -> int:
         **{name: hashes[name] for name in (
             "point_sha256", "point_model_sha256", "brief_sha256", "deck_sha256",
             "render_manifest_sha256", "deck_inspect_sha256", "visual_model_sha256",
+            "component_selection_audit_sha256", "component_gate_sha256",
         )},
         "measured_semantic_visual_share": round(measured_share, 4),
         "failures": failures,
@@ -604,11 +1771,23 @@ def parser() -> argparse.ArgumentParser:
     init.add_argument("--point-gate", required=True)
     init.set_defaults(func=command_init)
 
+    component = commands.add_parser("component-gate")
+    for name in COMPONENT_BUNDLE_PATHS:
+        component.add_argument(f"--{name}", required=True)
+    component.add_argument("--point-hash-file", required=True)
+    component.add_argument("--point-gate", required=True)
+    component.add_argument("--round", required=True, type=int)
+    component.add_argument("--output", required=True)
+    component.set_defaults(func=command_component_gate)
+
     gate = commands.add_parser("slide-gate")
     for name in (
         "point", "point-model", "point-hash-file", "point-gate", "deck",
         "render-manifest", "deck-inspect", "visual-query", "visual-baseline",
-        "brief", "constraints", "candidate-a", "candidate-b", "visual-model", "selection", "semantic",
+        "brief", "constraints", "component-rubric", "component-catalog",
+        "visual-jobs-a", "visual-jobs-b", "component-score-a", "component-score-b",
+        "component-ensemble-a", "component-ensemble-b", "candidate-a", "candidate-b",
+        "component-selection-audit", "component-gate", "visual-model", "selection", "semantic",
         "reader", "executive", "writer", "visual", "output",
     ):
         gate.add_argument(f"--{name}", required=True)
