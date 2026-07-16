@@ -20,5 +20,7 @@ Its content gate passed 97/100 and slide gate passed 96/100 under the first rubr
 - Require What/How/Why/Action, nodes, edges, trust boundaries, and a context-free one-line Point.
 - Make a meaning-bearing diagram mandatory for structural topics.
 - Add baseline regression checks for mental-model reconstruction, scanability, and information coverage.
+- Bind every review to the exact Point, PPTX, render, inspection, and visual-model hashes; derive diagram requirements from Point rather than reviewer-entered counts.
+- Generate two blind storyboards, compare them before build, and preserve raw short-gist and longer-reconstruction answers from independent readers.
 
 The accepted Point result is in [`point-result.md`](point-result.md). A replacement deck has not yet been created.

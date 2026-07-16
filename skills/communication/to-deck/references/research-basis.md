@@ -1,22 +1,41 @@
 # Research basis
 
-These sources explain the design. They are maintenance references and need not be loaded during ordinary runs.
+Maintenance references, last checked 2026-07-16. Ordinary runs need not load them.
 
-- Self-Refine supports iterative feedback and revision, but does not by itself guarantee factuality: https://arxiv.org/abs/2303.17651
-- CRITIC motivates tool-grounded critique instead of unsupported introspection: https://arxiv.org/abs/2305.11738
-- Chain-of-Verification motivates independent verification questions before final synthesis: https://arxiv.org/abs/2309.11495
-- Iterative self-refinement can reward-hack an imperfect model judge, especially when author and evaluator share context: https://arxiv.org/abs/2407.04549
-- D3 motivates role-specialized deliberation instead of one undifferentiated evaluator: https://arxiv.org/abs/2410.04663
-- Summarization research separates coherence and concision from informativeness and faithfulness: https://arxiv.org/abs/2606.08000
-- iRULER motivates explicit criteria, score justification, and actionable revision targets: https://arxiv.org/abs/2602.12779
-- ReviewGrounder motivates rubric-guided, tool-integrated, evidence-grounded review: https://arxiv.org/abs/2604.14261
-- LLM-as-a-Judge reliability work documents position, verbosity, and self-preference biases: https://arxiv.org/html/2411.15594
-- In-place expert feedback motivates exact issue-local edits over diffuse conversational revision: https://arxiv.org/abs/2510.00777
+Visual explanation and cognition:
+
+- Larkin & Simon, diagrammatic representation and spatial inference, peer-reviewed: https://doi.org/10.1111/j.1551-6708.1987.tb00863.x
+- Kosslyn et al., presentation principles and perceptual/cognitive failure modes, peer-reviewed: https://doi.org/10.3389/fpsyg.2012.00230
+- Chandler & Sweller, integrating mutually referring text and diagrams, peer-reviewed: https://doi.org/10.1111/j.2044-8279.1992.tb01017.x
+- Potter et al., rapid conceptual gist versus deeper reconstruction, peer-reviewed: https://doi.org/10.3758/s13414-013-0605-z
+- Alley et al., assertion-evidence headlines for engineering presentations, peer-reviewed: https://doi.org/10.1115/IMECE2004-61827
+
+Artifact evaluation and iterative review:
+
+- CRITIC, tool-grounded critique, preprint: https://arxiv.org/abs/2305.11738
+- Spontaneous Reward Hacking in Iterative Self-Refinement, preprint: https://arxiv.org/abs/2407.04549
+- PresentBench, instance-specific binary presentation checks, 2026 preprint: https://arxiv.org/abs/2603.07244
+- iRULER, criterion-specific review justification, CHI 2026: https://arxiv.org/abs/2602.12779
+- PPTAgent / PPTEval, rendered-slide evaluation, EMNLP 2025: https://aclanthology.org/2025.emnlp-main.728/
+- DeepPresenter, artifact-state presentation evaluation, 2026 preprint: https://arxiv.org/abs/2602.22839
+
+Judge reliability:
+
+- Fairer Preferences Elicit Improved Human-Aligned LLM Judgments, position bias, preprint: https://arxiv.org/abs/2305.17926
+- Judging LLM-as-a-Judge, position and verbosity bias, NeurIPS 2023: https://arxiv.org/abs/2306.05685
+- LLM evaluators recognize but do not favor their own generations, self-preference study: https://arxiv.org/abs/2310.10076
+- Self-Preference Bias in LLM-as-a-Judge, preprint: https://arxiv.org/abs/2404.13076
+
+Rendering and accessibility:
+
+- WCAG 2.2 contrast and non-color semantics, W3C standard: https://www.w3.org/TR/WCAG22/
+- Microsoft PowerPoint accessibility guidance: https://support.microsoft.com/en-US/accessibility/powerpoint/make-your-powerpoint-presentations-accessible-to-people-with-disabilities
+- Open XML validation API: https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.validation.openxmlvalidator
 
 Public workflow references:
 
 - Agent Skills specification: https://agentskills.io/specification
-- Vercel skills CLI discovery: https://github.com/vercel-labs/skills
-- Matt Pocock's small, composable skill library: https://github.com/mattpocock/skills
-- Verification Before Completion's evidence-before-claims gate: https://github.com/obra/superpowers/tree/main/skills/verification-before-completion
-- Anthropic's public PPTX skill demonstrates text extraction and rendered visual inspection. Its repository marks the skill proprietary, so copy no text or code: https://github.com/anthropics/skills/tree/main/skills/pptx
+- Matt Pocock's small, composable skills: https://github.com/mattpocock/skills
+- Verification Before Completion: https://github.com/obra/superpowers/tree/main/skills/verification-before-completion
+- PPTAgent/DeepPresenter MIT repository: https://github.com/icip-cas/PPTAgent
+- Anthropic public PPTX workflow is a precedent only; its text and code are proprietary and must not be copied: https://github.com/anthropics/skills/tree/main/skills/pptx

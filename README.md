@@ -7,7 +7,7 @@ Small, reviewable skills for evidence-first technical communication.
 | Skill | Purpose |
 |---|---|
 | [`point`](skills/communication/point/SKILL.md) | Build an authoritative domain explanation and a blind source map, compare them, then synthesize an evidence-backed teaching model that novice developers and technical executives can accurately teach back. |
-| [`to-deck`](skills/communication/to-deck/SKILL.md) | Turn an approved Point into a diagram-led, audience-tested presentation with a complete audit trail. |
+| [`to-deck`](skills/communication/to-deck/SKILL.md) | Establish a deck-blind visual baseline, compare independent storyboards, and turn an approved Point into an artifact-verified presentation that novice and executive readers can reconstruct. |
 
 The skills are deliberately composable:
 
@@ -27,7 +27,7 @@ The skill is user-invoked because it runs a deliberate, multi-stage review workf
 ## Quality contract
 
 - Point gate: complete claim and model coverage, blind domain/source comparison, successful novice and executive teach-back, weighted score ≥ 90/100, and every criterion ≥ 4/5.
-- Slide gate: a mandatory meaning-bearing diagram for structural topics, successful cold read, weighted score ≥ 90/100, and zero semantic or rendering hard-check failures.
+- Slide gate: Point-derived visual coverage, real mapped diagram objects, two-phase blind cold reads, exact PPTX/render/inspection hashes, weighted score ≥ 90/100, and zero semantic or rendering hard-check failures.
 - Every revision is immutable and packaged with hashes in a review trail.
 
 ## Development

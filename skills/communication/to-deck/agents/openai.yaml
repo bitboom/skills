@@ -1,8 +1,7 @@
 interface:
-  display_name: To Deck
-  short_description: Turn an approved Point into a visual deck
-  default_prompt: Use $to-deck to turn this approved Point into an audience-tested,
-    diagram-led presentation with a complete review trail.
+  display_name: "To Deck"
+  short_description: "Build a blind-tested visual argument"
+  default_prompt: "Use $to-deck to establish a visual baseline from this approved Point, compare independent storyboards, and build an artifact-verified presentation that novice developers and technical executives can reconstruct."
 policy:
   allow_implicit_invocation: false
   products:
