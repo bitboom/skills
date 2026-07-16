@@ -1,4 +1,20 @@
-# Slide gate
+# Gates
+
+## Visual component gate
+
+Before storyboard selection, require both blind architects to pass the artifact-bound component gate described in `component-selection.md`.
+
+- Every visual job links valid Claim, model, and baseline IDs and states criticality, audience, expected cold-read answer, and required distinctions.
+- Every component criterion uses an anchored 1–5 score with a non-empty justification. Recompute the weighted score; reject declared totals that differ.
+- Dominant components require at least 80/100. Supporting components require at least 70/100 and must add a previously uncovered must-see ID.
+- Any semantic distortion, collapsed role or boundary, broken causal direction, broken Evidence→evaluation→authenticated Result→policy action path, proof/non-proof confusion, project-first framing, decorative card listing, unreadable composition, color-only encoding, or new material claim makes the component ineligible regardless of score.
+- Each ensemble contains exactly one dominant component and at most three supports. Apply five redundancy points for every duplicate baseline assignment, capped at twenty. Require every ensemble criterion at least 4/5, total at least 90/100, all five baseline-required sets fully covered, zero missing critical relationships/boundaries/distinctions, zero hard failures, and zero unnecessary components.
+- If all applicable standard dominant candidates are ineligible, require an eligible `custom-domain-diagram` and record the fallback reason.
+- Require A/B visual grammars to differ materially. The anonymized Selection Reviewer independently recomputes component and ensemble scores before selecting A, B, or an explicit synthesis.
+
+Component scores are pre-build evidence only. They never replace the following slide gate.
+
+## Slide gate
 
 ## Hard gates
 

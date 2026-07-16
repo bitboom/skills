@@ -1,11 +1,4 @@
 interface:
   display_name: "To Deck"
-  short_description: "Build a blind-tested visual argument"
-  default_prompt: "Use $to-deck to establish a visual baseline from this approved Point, compare independent storyboards, and build an artifact-verified presentation that novice developers and technical executives can reconstruct."
-policy:
-  allow_implicit_invocation: false
-  products:
-  - chatgpt
-  - codex
-  - api
-  - atlas
+  short_description: "Select and blind-test a visual argument"
+  default_prompt: "Use $to-deck to turn this approved Point into an artifact-verified presentation by extracting visual jobs, independently scoring A/B component ensembles, selecting the strongest visual argument, and validating rendered slides with novice and executive cold reads."

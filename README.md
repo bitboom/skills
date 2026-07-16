@@ -7,7 +7,7 @@ Small, reviewable skills for evidence-first technical communication.
 | Skill | Purpose |
 |---|---|
 | [`point`](skills/communication/point/SKILL.md) | Build an authoritative domain explanation and a blind source map, compare them, then synthesize an evidence-backed teaching model that novice developers and technical executives can accurately teach back. |
-| [`to-deck`](skills/communication/to-deck/SKILL.md) | Establish a deck-blind visual baseline, compare independent storyboards, and turn an approved Point into an artifact-verified presentation that novice and executive readers can reconstruct. |
+| [`to-deck`](skills/communication/to-deck/SKILL.md) | Extract visual jobs, score component candidates, compare independent storyboard ensembles, and turn an approved Point into an artifact-verified presentation that novice and executive readers can reconstruct. |
 
 The skills are deliberately composable:
 
@@ -27,13 +27,15 @@ The skill is user-invoked because it runs a deliberate, multi-stage review workf
 ## Quality contract
 
 - Point gate: complete claim and model coverage, blind domain/source comparison, successful novice and executive teach-back, weighted score ≥ 90/100, and every criterion ≥ 4/5.
-- Slide gate: Point-derived visual coverage, real mapped diagram objects, two-phase blind cold reads, exact PPTX/render/inspection hashes, weighted score ≥ 90/100, and zero semantic or rendering hard-check failures.
+- Component gate: one dominant component plus only incrementally useful supports, ensemble score ≥ 90/100, complete must-see coverage, zero collapsed distinctions, and materially different A/B visual grammars.
+- Slide gate: Point-derived visual coverage, real mapped diagram objects, two-phase blind cold reads, exact PPTX/render/inspection hashes, weighted score ≥ 90/100, every criterion ≥ 4/5, and zero semantic or rendering hard-check failures.
 - Every revision is immutable and packaged with hashes in a review trail.
 
 ## Development
 
 ```bash
 python3 -m unittest discover -s tests -p 'test_*.py'
+python3 -m unittest discover -s skills/communication/to-deck/tests -p 'test_*.py'
 ```
 
 The repository is intentionally small: the workflow stays in `SKILL.md`, deterministic checks stay in `scripts/`, and detailed contracts stay in `references/`.
