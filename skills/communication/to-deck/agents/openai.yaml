@@ -1,0 +1,12 @@
+interface:
+  display_name: To Deck
+  short_description: Turn an approved Point into a visual deck
+  default_prompt: Use $to-deck to turn this approved Point into an audience-tested,
+    diagram-led presentation with a complete review trail.
+policy:
+  allow_implicit_invocation: false
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas

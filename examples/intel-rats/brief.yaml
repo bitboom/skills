@@ -1,0 +1,20 @@
+run_id: intel-rats-point-v04-domain-first
+audience: general engineer / security and platform engineer / technical decision maker
+mode: domain_through_project
+canonical_topic: Intel TDX Remote Attestation
+project_role: teaching_vehicle
+question: What must a reader understand about Intel TDX Remote Attestation, and how does Intel-rats help or mislead that understanding?
+outcome: teach the domain mechanism, proof boundary, and deployment decisions first; use Intel-rats as a concrete lens and assess it last
+scope: bitboom/Intel-rats main commit 427ae3e8b646cfe091d1e207c6a871e6680ace05
+source_constraints: project files, IETF RFCs, Intel official documents, and implementation-project documentation
+language: ko-KR
+required_readers: general engineer / security-platform engineer / technical executive
+review_mode: independent
+content_balance:
+  domain_core: 0.60
+  project_lens: 0.25
+  caveats_and_assessment: 0.15
+independent_candidates:
+  - project-blind strong-model coverage hypothesis
+  - project-blind authoritative domain baseline
+  - baseline-blind Intel-rats source map

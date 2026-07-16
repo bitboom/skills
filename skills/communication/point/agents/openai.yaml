@@ -1,0 +1,4 @@
+interface:
+  display_name: "Point"
+  short_description: "Build a domain-first brief from sources"
+  default_prompt: "Use $point to independently establish the ideal domain explanation, compare it with this source, and synthesize an evidence-backed brief for novice developers and technical executives."
