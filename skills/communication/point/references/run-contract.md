@@ -21,6 +21,7 @@ Never overwrite a prior round. Use two-digit versions beginning with v01.
     │   ├── v01-reader-review.json
     │   ├── v01-executive-review.json
     │   ├── v01-writer-review.json
+    │   ├── v01-prose-review.json
     │   ├── v01-gate.json
     │   └── v01-decision.md
     ├── final/
@@ -60,6 +61,12 @@ Hard fields:
 - assessment_share <= 0.20
 
 Every review JSON contains round, artifact_sha256, model_sha256, critical_issues, and issues. The gate rejects stale reviews. Fact review also records complete claim, model, and freshness coverage with zero critical unsupported claims, conflicts, or authoritative-source gaps.
+
+## Prose review JSON
+
+Required fields: round, artifact_sha256, model_sha256, language, critical_issues, issues, `scores`, and `hard_checks`. Scores are reader_fit, terminology_onboarding, causal_cohesion, and concision_without_loss; every score must be at least 4/5 and the normalized total at least 90/100.
+
+Hard checks: claim_ids_preserved, citations_and_qualifiers_preserved, critical_terms_defined_or_known, actors_and_actions_explicit, paragraphs_answer_one_reader_question, language_is_natural_for_audience, and unresolved_literal_translation_count=0. This review may improve wording and information order, but it must not add a claim, weaken a condition, delete an evidence boundary, or replace technical precision with vague plain language.
 
 For a structural or security topic, the Domain review also records the required flags and their result: context_dependencies_closed, cross_boundary_results_authenticated, threat_assumptions_explicit, trust_semantics_not_collapsed, and decision_result_identifies_evidence_and_policy. Required checks must be true when the topic contains freshness, identity, binding, a security boundary, or a decision-bearing result.
 

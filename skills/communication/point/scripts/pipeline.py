@@ -35,6 +35,13 @@ SYNTHESIS_WEIGHTS = {
     "synthesis_gain": 30,
 }
 
+PROSE_WEIGHTS = {
+    "reader_fit": 25,
+    "terminology_onboarding": 25,
+    "causal_cohesion": 25,
+    "concision_without_loss": 25,
+}
+
 
 def read_json(path: Path) -> dict:
     try:
@@ -143,6 +150,7 @@ def command_point_gate(args: argparse.Namespace) -> int:
         "domain": read_json(Path(args.domain)),
         "reader": read_json(Path(args.reader)),
         "writer": read_json(Path(args.writer)),
+        "prose": read_json(Path(args.prose)),
     }
     if args.executive:
         reviews["executive"] = read_json(Path(args.executive))
@@ -284,6 +292,25 @@ def command_point_gate(args: argparse.Namespace) -> int:
         if require_list(review, "critical_issues"):
             failures.append(f"{label} review has critical issues")
 
+    prose = reviews["prose"]
+    if not isinstance(prose.get("language"), str) or not prose["language"].strip():
+        failures.append("prose review must record language")
+    prose_hard = prose.get("hard_checks")
+    if not isinstance(prose_hard, dict):
+        raise SystemExit("prose.hard_checks must be an object")
+    for name in (
+        "claim_ids_preserved",
+        "citations_and_qualifiers_preserved",
+        "critical_terms_defined_or_known",
+        "actors_and_actions_explicit",
+        "paragraphs_answer_one_reader_question",
+        "language_is_natural_for_audience",
+    ):
+        if prose_hard.get(name) is not True:
+            failures.append(f"prose hard check {name} must be true")
+    if prose_hard.get("unresolved_literal_translation_count") != 0:
+        failures.append("prose review has unresolved literal translations")
+
     fact = reviews["fact"]
     for checked, total, label in (
         (fact.get("claims_checked"), fact.get("claims_total"), "claim coverage"),
@@ -351,6 +378,14 @@ def command_point_gate(args: argparse.Namespace) -> int:
     if total < 90:
         failures.append("Point score below 90")
 
+    prose_score, prose_score_failures = validate_scores(
+        prose, PROSE_WEIGHTS, "prose"
+    )
+    prose_score = round(prose_score, 2)
+    failures.extend(prose_score_failures)
+    if prose_score < 90:
+        failures.append("prose score below 90")
+
     executive_score = None
     if "executive" in reviews:
         executive_score, score_failures = validate_scores(
@@ -377,6 +412,7 @@ def command_point_gate(args: argparse.Namespace) -> int:
         "passed": not failures,
         "point_score": total,
         "synthesis_score": synthesis_score,
+        "prose_score": prose_score,
         "executive_score": executive_score,
         "artifact_sha256": artifact_hash,
         "model_sha256": model_hash,
@@ -447,7 +483,7 @@ def parser() -> argparse.ArgumentParser:
     init.set_defaults(func=command_init)
 
     gate = commands.add_parser("point-gate")
-    for name in ("draft", "model", "fact", "domain", "reader", "writer", "output", "query", "prior", "baseline", "synthesis"):
+    for name in ("draft", "model", "fact", "domain", "reader", "writer", "prose", "output", "query", "prior", "baseline", "synthesis"):
         gate.add_argument(f"--{name}", required=True)
     gate.add_argument("--source-model", dest="source_model", required=True)
     gate.add_argument("--executive")

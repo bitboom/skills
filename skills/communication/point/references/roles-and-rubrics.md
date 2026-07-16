@@ -9,6 +9,7 @@
 | Source Mapper | Source or project | Prior and baseline |
 | Coverage Synthesizer | Both blind candidates | Other scores |
 | Reviewers | Current final artifacts and assigned evidence | Author self-score and peer scores |
+| Language Prose Reviewer | Locked draft, model, citation ledger, language brief | Author self-score and peer scores |
 
 Use the strongest current reasoning model available for the prior. Record the model when known. Its output is still only a coverage hypothesis.
 
@@ -26,6 +27,7 @@ Use the strongest current reasoning model available for the prior. Record the mo
 - A technical executive can state capability, value, principal trust limitation, accountable decision, and next action.
 - The one-line Point names the domain, mechanism, and outcome without relying on unexplained project jargon.
 - Terms are interpretable, essentials and exclusions are explicit, and fact corrections do not displace teaching.
+- The prose review preserves every claim ID, citation, qualifier, actor, boundary, and proof limit. It improves reader fit by making terms local, actions explicit, causal links visible, and each paragraph answer one reader question.
 
 ## Point score
 
@@ -47,6 +49,10 @@ Score each criterion from 1 to 5. Every score must be at least 4 and the weighte
 domain_baseline_coverage weighs 40, project_relevance 30, and synthesis_gain 30. Every score must be at least 4 and the normalized total at least 90.
 
 When executive review is required, decision_relevance and so_what_clarity must each be at least 4, normalized total at least 90, and critical questions empty.
+
+## Prose score
+
+Score reader_fit, terminology_onboarding, causal_cohesion, and concision_without_loss from 1 to 5. Every score must be at least 4 and the normalized total at least 90. The prose reviewer is not an evidence authority: it must flag, not repair from memory, a claim whose natural rewrite would need new factual content.
 
 ## Cold-read questions
 
