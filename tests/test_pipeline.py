@@ -169,6 +169,8 @@ class PointPipelineTest(unittest.TestCase):
                     "paragraphs_answer_one_reader_question": True,
                     "language_is_natural_for_audience": True,
                     "unresolved_literal_translation_count": 0,
+                    "security_boundary_explanation_required": False,
+                    "security_boundary_explanation_complete": True,
                 },
             },
             "executive": common | {
@@ -230,6 +232,26 @@ class PointPipelineTest(unittest.TestCase):
             draft, model = self.make_run(root)
             prose = json.loads((root / "prose.json").read_text())
             prose["hard_checks"]["language_is_natural_for_audience"] = False
+            save(root / "prose.json", prose)
+            result = subprocess.run([
+                sys.executable, str(POINT), "point-gate", "--draft", str(draft),
+                "--model", str(model), "--fact", str(root / "fact.json"),
+                "--domain", str(root / "domain.json"), "--reader", str(root / "reader.json"),
+                "--query", str(root / "query.md"),
+                "--prior", str(root / "prior.json"), "--baseline", str(root / "baseline.json"),
+                "--source-model", str(root / "source-model.json"), "--synthesis", str(root / "synthesis.json"),
+                "--writer", str(root / "writer.json"), "--prose", str(root / "prose.json"),
+                "--output", str(root / "gate.json"),
+            ], check=False)
+            self.assertEqual(result.returncode, 2)
+
+    def test_point_gate_rejects_incomplete_required_security_boundary_explanation(self):
+        with tempfile.TemporaryDirectory() as value:
+            root = Path(value)
+            draft, model = self.make_run(root)
+            prose = json.loads((root / "prose.json").read_text())
+            prose["hard_checks"]["security_boundary_explanation_required"] = True
+            prose["hard_checks"]["security_boundary_explanation_complete"] = False
             save(root / "prose.json", prose)
             result = subprocess.run([
                 sys.executable, str(POINT), "point-gate", "--draft", str(draft),

@@ -31,7 +31,9 @@ Output: `rounds/vNN-prose-review.json`. It must bind to the exact `point.md` and
     "actors_and_actions_explicit": true,
     "paragraphs_answer_one_reader_question": true,
     "language_is_natural_for_audience": true,
-    "unresolved_literal_translation_count": 0
+    "unresolved_literal_translation_count": 0,
+    "security_boundary_explanation_required": true,
+    "security_boundary_explanation_complete": true
   },
   "critical_issues": [],
   "issues": []
@@ -48,6 +50,18 @@ Output: `rounds/vNN-prose-review.json`. It must bind to the exact `point.md` and
 6. **Remove repetition, not constraints.** Delete duplicated introductions, vague signposting, and prose that restates a heading. Retain source qualifiers, conditions, exceptions, cardinality, policy/version identity, and every claim ID.
 7. **Read for Korean naturalness.** Reject literal translation, stacked modifiers that conceal the subject or verb, unexplained English, and generic abstract nouns when a concrete actor or artifact is available. Do not add conversational voice, opinions, or unsupported analogies.
 8. **Run the semantic diff.** Check that the claim-ID set, citation set, model nodes/edges/boundaries, and stated proof limits match the locked draft. If a natural rewrite needs new factual content, return it to the evidence author rather than guessing.
+
+## Explain a security boundary or misconception
+
+Use this micro-pattern when the reader asks what a security component, trust boundary, policy result, or protocol artifact means. It is not required for a topic with no security boundary; record `security_boundary_explanation_required: false` in that case.
+
+1. **Answer the claim directly.** State what the component does and what it does not authorize. Do not begin with background.
+2. **Name the artifact.** Say what exact object crosses the boundary: for example, a signed Result, certificate, CRL, Quote, nonce, digest, or cached response. “Data” is too vague when a concrete artifact is available.
+3. **Name the verifier and check.** State who checks the artifact and which property matters: signature, issuer chain, status, expiry, request binding, digest, proof of possession, or policy version.
+4. **Name the decision.** State what action the successful check permits and which other component owns that action. A validated artifact is not automatically an authorization unless the policy says so.
+5. **Name the failure outcome.** For an untrusted, malicious, stale, replayed, or unavailable input, state whether it is rejected, retried with fresh state, or handled by an explicit fail-closed or constrained policy.
+
+For the PCCS example: `PCCS` is the cache/transport role; collateral bytes are the returned certificate, CRL, QE Identity, TCB Info, and issuer-chain artifacts; `Verifier` validates their signatures, chain, status, and freshness; only then may the Verifier use them to appraise a Quote; a stale or unavailable response follows the collateral freshness/outage policy. The explanation must not claim that the cache itself is the authority.
 
 ## Scoring rubric
 
@@ -73,6 +87,6 @@ Output: `rounds/vNN-prose-review.json`. It must bind to the exact `point.md` and
 - Hotaling (2020), concise scientific writing requires a dedicated revision pass. https://doi.org/10.1002/lol2.10165
 - Kendeou and van den Broek (2007), prior knowledge and text structure affect comprehension of scientific texts. https://doi.org/10.3758/BF03193491
 - Reynolds and Thompson (2011), structured scientific peer review improved student thesis writing. https://doi.org/10.1187/cbe.10-10-0127
-- Paper Plain (2022), local definitions, plain-language summaries, and question-guided navigation made research papers easier to read without a comprehension loss in its study. https://arxiv.org/abs/2203.00130
+- Paper Plain (2023; preprint 2022), local definitions, in-situ summaries, and question-guided navigation made medical papers easier to read and understand without a measured comprehension loss in its study. https://doi.org/10.1145/3589955
 
-These sources motivate the workflow. They do not justify removing evidence, conditions, or technical qualifiers from a security or protocol document.
+These sources motivate the workflow. Google and Microsoft are professional style guides; Kendeou and van den Broek study scientific-text comprehension; Reynolds and Thompson study structured peer review in undergraduate theses; Paper Plain studies medical papers. None alone proves this exact micro-pattern for Korean security documentation. Together they justify an evidence-informed method: expose the reader-relevant structure, define terms locally, guide the reader to the deciding evidence, then use independent review to test whether the explanation worked. They do not justify removing evidence, conditions, or technical qualifiers from a security or protocol document.

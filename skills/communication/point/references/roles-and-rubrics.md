@@ -27,7 +27,7 @@ Use the strongest current reasoning model available for the prior. Record the mo
 - A technical executive can state capability, value, principal trust limitation, accountable decision, and next action.
 - The one-line Point names the domain, mechanism, and outcome without relying on unexplained project jargon.
 - Terms are interpretable, essentials and exclusions are explicit, and fact corrections do not displace teaching.
-- The prose review preserves every claim ID, citation, qualifier, actor, boundary, and proof limit. It improves reader fit by making terms local, actions explicit, causal links visible, and each paragraph answer one reader question.
+- The prose review preserves every claim ID, citation, qualifier, actor, boundary, and proof limit. It improves reader fit by making terms local, actions explicit, causal links visible, and each paragraph answer one reader question. A required security-boundary explanation names the role, artifact, validation, decision, and failure outcome; “PCCS is not trusted” alone is not enough.
 
 ## Point score
 

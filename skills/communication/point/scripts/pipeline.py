@@ -310,6 +310,12 @@ def command_point_gate(args: argparse.Namespace) -> int:
             failures.append(f"prose hard check {name} must be true")
     if prose_hard.get("unresolved_literal_translation_count") != 0:
         failures.append("prose review has unresolved literal translations")
+    boundary_explanation_required = prose_hard.get("security_boundary_explanation_required")
+    if not isinstance(boundary_explanation_required, bool):
+        failures.append("prose hard check security_boundary_explanation_required must be boolean")
+    elif boundary_explanation_required is True:
+        if prose_hard.get("security_boundary_explanation_complete") is not True:
+            failures.append("required security-boundary explanation is incomplete")
 
     fact = reviews["fact"]
     for checked, total, label in (
