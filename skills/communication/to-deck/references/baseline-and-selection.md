@@ -8,7 +8,7 @@ Send this before the agent sees a template, prior deck, or design candidate:
 
 Save the prompt, inputs seen, model identity when known, and SHA-256. The visual baseline is a completeness contract, not a slide design.
 
-The JSON contains `must_see` objects with stable IDs plus five ID sets derived from them: `semantic_required_ids`, `gist_required_ids`, `reconstruction_required_ids`, `executive_required_ids`, and `headline_required_ids`. This makes cold-read checks specific to a flow, architecture, comparison, decision, or timeline instead of forcing one universal template.
+The JSON contains `must_see` objects with stable IDs plus six ID sets derived from them: `semantic_required_ids`, `gist_required_ids`, `reconstruction_required_ids`, `executive_required_ids`, `headline_required_ids`, and `thumbnail_mechanism_required_ids`. The thumbnail set is the minimum mechanism a reviewer must recover from the reduced render, not merely a promise that the thumbnail was inspected. For a material security boundary, set `security_boundary_required: true` and declare `security_boundary_model_ids` for `role`, `artifact`, `checker`, `decision`, and `failure`. This makes cold-read and boundary checks specific to a flow, architecture, comparison, decision, or timeline instead of forcing one universal template.
 
 ## Independent visual-job maps
 
@@ -47,7 +47,7 @@ Do not optimize for the fewest words. A one-slide technical explainer must still
 
 - subject, mechanism, and outcome in the headline;
 - input/Evidence, evaluator, authenticated result, final decision owner, and allow/deny outcome;
-- material actor or trust boundaries from Point;
+- material actor or trust boundaries from Point; when a security boundary is material, the role, crossing artifact, checker, separate decision owner, and failure outcome must be connected in the visual-object map;
 - one proof and one non-proof;
 - the decision or next action;
 - the source project's role when Point marks it material.

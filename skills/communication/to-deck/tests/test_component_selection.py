@@ -88,6 +88,15 @@ class IntelRatsFixture:
             ],
             "executive_required_ids": ["VB-001", "VB-004", "VB-007", "VB-009"],
             "headline_required_ids": ["VB-001", "VB-006"],
+            "thumbnail_mechanism_required_ids": ["VB-004", "VB-005", "VB-006"],
+            "security_boundary_required": True,
+            "security_boundary_model_ids": {
+                "role": ["N-PCCS"],
+                "artifact": ["E-PCS-PCCS"],
+                "checker": ["N-VERIFIER"],
+                "decision": ["N-RP"],
+                "failure": ["E-ACTION"],
+            },
         }
         self.put("visual-baseline", baseline)
         self.put("constraints", {
@@ -528,13 +537,23 @@ class IntelRatsFixture:
         render_dir = self.root / "render"
         render_dir.mkdir()
         render = render_dir / "slide-1.png"
-        render.write_bytes(b"rendered-slide")
+        render.write_bytes(
+            b"\x89PNG\r\n\x1a\n" + b"\0" * 8 + (1600).to_bytes(4, "big") + (900).to_bytes(4, "big")
+        )
         self.paths["render"] = render
         self.put("render-manifest", {
+            "schema_version": 2,
             "renderer": "test renderer",
             "renderer_version": "1",
             "command": "test",
             "generated_at": "2026-07-17T00:00:00Z",
+            "toolchain": {
+                "renderer": "test renderer",
+                "renderer_version": "1",
+                "command": "test",
+                "environment": "test environment",
+            },
+            "producer": {"kind": "manual", "command": "test"},
             "slide_count": 1,
             "slides": [{"path": "render/slide-1.png", "width": 1600, "height": 900,
                         "sha256": digest(render)}],
@@ -561,6 +580,9 @@ class IntelRatsFixture:
             {"id": "edge-two", "kind": "connector", "component_ids": ["A-DOM"],
              "baseline_ids": ["VB-004"], "point_ids": ["C-004"],
              "model_ids": ["E-RESULT"], "artifact_object_ids": ["sh/edge-2"]},
+            {"id": "edge-three", "kind": "connector", "component_ids": ["A-ACTION"],
+             "baseline_ids": ["VB-009"], "point_ids": ["C-009"],
+             "model_ids": ["E-ACTION"], "artifact_object_ids": ["sh/edge-3"]},
             {"id": "boundary-main", "kind": "boundary", "component_ids": ["A-DOM"],
              "baseline_ids": ["VB-003"], "point_ids": ["C-003"],
              "model_ids": ["B-QGS-TDQE"], "artifact_object_ids": ["sh/boundary"]},
@@ -570,6 +592,7 @@ class IntelRatsFixture:
             {"kind": "shape", "id": "sh/node", "slide": 1, "bbox": [50, 130, 500, 400]},
             {"kind": "shape", "id": "sh/edge-1", "slide": 1, "bbox": [550, 250, 200, 10]},
             {"kind": "shape", "id": "sh/edge-2", "slide": 1, "bbox": [750, 250, 200, 10]},
+            {"kind": "shape", "id": "sh/edge-3", "slide": 1, "bbox": [950, 250, 150, 10]},
             {"kind": "shape", "id": "sh/boundary", "slide": 1, "bbox": [40, 120, 1100, 500]},
         ]
         mapped_points = {item for row in visual_objects for item in row["point_ids"]}
@@ -598,12 +621,47 @@ class IntelRatsFixture:
         inspect = self.root / "deck.inspect.ndjson"
         inspect.write_text("\n".join(json.dumps(row) for row in records) + "\n", encoding="utf-8")
         self.paths["deck_inspect"] = inspect
-        visual_model = {"objects": visual_objects}
+        model_object_ids = {
+            model_id: row["id"]
+            for row in visual_objects
+            for model_id in row["model_ids"]
+        }
+        visual_model = {
+            "objects": visual_objects,
+            "critical_artifact_traces": [{
+                "id": "TRACE-EVIDENCE-RESULT",
+                "producer_object_ids": ["node-main"],
+                "checker_object_ids": [model_object_ids["N-VERIFIER"]],
+                "consumer_object_ids": [model_object_ids["N-RP"]],
+                "connector_object_ids": ["edge-one", "edge-two"],
+                "connector_paths": [
+                    {"connector_object_id": "edge-one", "from_object_id": "node-main", "to_object_id": model_object_ids["N-VERIFIER"]},
+                    {"connector_object_id": "edge-two", "from_object_id": model_object_ids["N-VERIFIER"], "to_object_id": model_object_ids["N-RP"]},
+                ],
+                "visible_direction": "left-to-right",
+            }],
+            "security_boundary_trace": {
+                "role_object_ids": [model_object_ids["N-PCCS"]],
+                "artifact_object_ids": [model_object_ids["E-PCS-PCCS"]],
+                "checker_object_ids": [model_object_ids["N-VERIFIER"]],
+                "decision_object_ids": [model_object_ids["N-RP"]],
+                "failure_object_ids": [model_object_ids["E-ACTION"]],
+                "connector_object_ids": ["edge-one", "edge-two", "edge-three"],
+                "connector_paths": [
+                    {"connector_object_id": "edge-one", "from_object_id": model_object_ids["N-PCCS"], "to_object_id": model_object_ids["N-VERIFIER"]},
+                    {"connector_object_id": "edge-two", "from_object_id": model_object_ids["N-VERIFIER"], "to_object_id": model_object_ids["N-RP"]},
+                    {"connector_object_id": "edge-three", "from_object_id": model_object_ids["N-RP"], "to_object_id": model_object_ids["E-ACTION"]},
+                ],
+                "visible_direction": "left-to-right",
+            },
+        }
         self.put("visual-model", visual_model)
         self._make_selection_and_reviews()
 
     def _make_selection_and_reviews(self):
-        path_hash = lambda key: digest(self.paths[key])
+        def path_hash(key):
+            return digest(self.paths[key])
+
         selection = {
             "round": 1,
             "point_sha256": path_hash("point"),
@@ -663,6 +721,7 @@ class IntelRatsFixture:
             "component_gate_sha256": path_hash("component_gate"),
             "author_id": "author",
             "author_model": "author-model",
+            "author_provider": "author-provider",
             "review_prompt_sha256": "b" * 64,
             "critical_issues": [],
             "issues": [],
@@ -671,7 +730,7 @@ class IntelRatsFixture:
             **common, "reviewer_id": "semantic", "reviewer_model": "model",
             "structural_elements": 7, "relationships": 7, "diagram_required": True,
             "dominant_visual_present": True, "semantic_visual_share": 0.76,
-            "nodes_total": 1, "nodes_checked": 1, "edges_total": 2, "edges_checked": 2,
+            "nodes_total": 1, "nodes_checked": 1, "edges_total": 3, "edges_checked": 3,
             "boundaries_total": 1, "boundaries_checked": 1, "diagram_direction_errors": 0,
             "visual_grammar_matches_job": True, "trust_roles_not_collapsed": True,
             "project_assessment_secondary": True,
@@ -709,8 +768,19 @@ class IntelRatsFixture:
         }
         visual = {
             **common, "reviewer_id": "visual", "reviewer_model": "model",
+            "reviewer_provider": "independent-provider", "reviewer_role": "model",
+            "reviewer_independence_basis": "different-provider", "review_pass": 2,
             "full_size_render_inspected": True, "thumbnail_render_inspected": True,
             "structural_test_passed": True, "slide_count_match": True,
+            "thumbnail_raw_gist": "evidence is evaluated before a release decision",
+            "thumbnail_raw_mechanism_answers": {"answer": "Verifier evaluates evidence before RP acts"},
+            "thumbnail_mechanism_recovered_ids": ["VB-004", "VB-005", "VB-006"],
+            "rendered_slide_sha256s": [digest(self.paths["render"])],
+            "bug_hunt_checks": {
+                "overlap": True, "clipping": True, "label_clearance": True,
+                "footer_collision": True, "contrast": True, "text_wrapping": True,
+                "placeholder_content": True, "reading_order": True,
+            },
             "non_diagram_support_blocks": 3,
             "density_telemetry": {
                 "visible_word_count": 100, "perceptual_group_count": 8, "min_font_pt": 16,
@@ -745,6 +815,13 @@ class IntelRatsFixture:
             [sys.executable, str(PIPELINE_PATH), "slide-gate", *self.slide_args()],
             check=False, capture_output=True, text=True,
         )
+
+    def refresh_render_manifest_hashes(self):
+        value = digest(self.paths["render_manifest"])
+        for key in ("semantic", "reader", "executive", "writer", "visual"):
+            review = self.load(key)
+            review["render_manifest_sha256"] = value
+            self.save(key, review)
 
     def refresh_visual_model_hashes(self):
         value = digest(self.paths["visual_model"])
@@ -937,6 +1014,118 @@ class SlideGateRegressionTest(unittest.TestCase):
             gate = json.loads(fixture.paths["slide_gate"].read_text())
             self.assertTrue(any("collapses required distinction D-RESULT-ACTION" in item
                                 for item in gate["failures"]))
+
+    def test_slide_gate_rejects_absolute_render_manifest_paths(self):
+        with tempfile.TemporaryDirectory() as value:
+            fixture = IntelRatsFixture(value)
+            fixture.make_slide_gate_fixture()
+            manifest = fixture.load("render_manifest")
+            manifest["slides"][0]["path"] = str(fixture.paths["render"].resolve())
+            fixture.save("render_manifest", manifest)
+            fixture.refresh_render_manifest_hashes()
+            result = fixture.run_slide_gate()
+            self.assertEqual(result.returncode, 2)
+            gate = json.loads(fixture.paths["slide_gate"].read_text())
+            self.assertTrue(any("absolute" in item for item in gate["failures"]))
+
+    def test_slide_gate_rejects_script_producer_outside_manifest_directory(self):
+        with tempfile.TemporaryDirectory() as value:
+            fixture = IntelRatsFixture(value)
+            fixture.make_slide_gate_fixture()
+            manifest = fixture.load("render_manifest")
+            manifest["producer"] = {
+                "kind": "script",
+                "command": "python build.py",
+                "source_path": "../build.py",
+                "source_sha256": "0" * 64,
+            }
+            fixture.save("render_manifest", manifest)
+            fixture.refresh_render_manifest_hashes()
+            result = fixture.run_slide_gate()
+            self.assertEqual(result.returncode, 2)
+            gate = json.loads(fixture.paths["slide_gate"].read_text())
+            self.assertTrue(any("producer source path must stay" in item for item in gate["failures"]))
+
+    def test_slide_gate_requires_thumbnail_mechanism_evidence(self):
+        with tempfile.TemporaryDirectory() as value:
+            fixture = IntelRatsFixture(value)
+            fixture.make_slide_gate_fixture()
+            visual = fixture.load("visual")
+            visual.pop("thumbnail_raw_mechanism_answers")
+            visual.pop("thumbnail_mechanism_recovered_ids")
+            fixture.save("visual", visual)
+            result = fixture.run_slide_gate()
+            self.assertEqual(result.returncode, 2)
+            gate = json.loads(fixture.paths["slide_gate"].read_text())
+            self.assertTrue(any("thumbnail mechanism" in item for item in gate["failures"]))
+
+    def test_slide_gate_requires_complete_security_boundary_trace(self):
+        with tempfile.TemporaryDirectory() as value:
+            fixture = IntelRatsFixture(value)
+            fixture.make_slide_gate_fixture()
+            visual_model = fixture.load("visual_model")
+            visual_model["security_boundary_trace"].pop("failure_object_ids")
+            fixture.save("visual_model", visual_model)
+            fixture.refresh_visual_model_hashes()
+            result = fixture.run_slide_gate()
+            self.assertEqual(result.returncode, 2)
+            gate = json.loads(fixture.paths["slide_gate"].read_text())
+            self.assertTrue(any("security boundary trace" in item for item in gate["failures"]))
+
+    def test_slide_gate_rejects_collapsed_or_directionless_critical_artifact_trace(self):
+        with tempfile.TemporaryDirectory() as value:
+            fixture = IntelRatsFixture(value)
+            fixture.make_slide_gate_fixture()
+            visual_model = fixture.load("visual_model")
+            trace = visual_model["critical_artifact_traces"][0]
+            trace["checker_object_ids"] = list(trace["producer_object_ids"])
+            trace["visible_direction"] = "not-a-direction"
+            fixture.save("visual_model", visual_model)
+            fixture.refresh_visual_model_hashes()
+            result = fixture.run_slide_gate()
+            self.assertEqual(result.returncode, 2)
+            gate = json.loads(fixture.paths["slide_gate"].read_text())
+            self.assertTrue(any("critical artifact trace" in item for item in gate["failures"]))
+
+    def test_slide_gate_rejects_collapsed_security_boundary_roles(self):
+        with tempfile.TemporaryDirectory() as value:
+            fixture = IntelRatsFixture(value)
+            fixture.make_slide_gate_fixture()
+            visual_model = fixture.load("visual_model")
+            trace = visual_model["security_boundary_trace"]
+            trace["decision_object_ids"] = list(trace["checker_object_ids"])
+            fixture.save("visual_model", visual_model)
+            fixture.refresh_visual_model_hashes()
+            result = fixture.run_slide_gate()
+            self.assertEqual(result.returncode, 2)
+            gate = json.loads(fixture.paths["slide_gate"].read_text())
+            self.assertTrue(any("security boundary trace" in item for item in gate["failures"]))
+
+    def test_slide_gate_requires_connected_critical_artifact_trace(self):
+        with tempfile.TemporaryDirectory() as value:
+            fixture = IntelRatsFixture(value)
+            fixture.make_slide_gate_fixture()
+            visual_model = fixture.load("visual_model")
+            visual_model["critical_artifact_traces"][0]["connector_paths"] = []
+            fixture.save("visual_model", visual_model)
+            fixture.refresh_visual_model_hashes()
+            result = fixture.run_slide_gate()
+            self.assertEqual(result.returncode, 2)
+            gate = json.loads(fixture.paths["slide_gate"].read_text())
+            self.assertTrue(any("connector_paths" in item for item in gate["failures"]))
+
+    def test_slide_gate_requires_complete_critical_artifact_trace(self):
+        with tempfile.TemporaryDirectory() as value:
+            fixture = IntelRatsFixture(value)
+            fixture.make_slide_gate_fixture()
+            visual_model = fixture.load("visual_model")
+            visual_model["critical_artifact_traces"][0]["connector_object_ids"] = []
+            fixture.save("visual_model", visual_model)
+            fixture.refresh_visual_model_hashes()
+            result = fixture.run_slide_gate()
+            self.assertEqual(result.returncode, 2)
+            gate = json.loads(fixture.paths["slide_gate"].read_text())
+            self.assertTrue(any("critical artifact trace" in item for item in gate["failures"]))
 
     def test_legacy_thresholds_and_render_hard_checks_are_unchanged(self):
         with tempfile.TemporaryDirectory() as value:

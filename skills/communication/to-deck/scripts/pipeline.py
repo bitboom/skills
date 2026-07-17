@@ -9,7 +9,9 @@ import json
 from pathlib import Path
 import re
 import shutil
+import stat
 import sys
+import tempfile
 import zipfile
 
 import yaml
@@ -46,6 +48,37 @@ RENDER_HARD_CHECKS = {
     "color_only_encoding",
     "missing_alt_text",
     "invalid_reading_order",
+}
+
+RENDER_MANIFEST_SCHEMA_VERSION = 2
+RENDER_TOOLCHAIN_FIELDS = {"renderer", "renderer_version", "command", "environment"}
+MAX_PACKAGE_MEMBERS = 1_000
+MAX_PACKAGE_MEMBER_BYTES = 100 * 1024 * 1024
+MAX_PACKAGE_TOTAL_BYTES = 500 * 1024 * 1024
+MAX_PACKAGE_COMPRESSION_RATIO = 100
+VISUAL_BUG_HUNT_CHECKS = {
+    "overlap",
+    "clipping",
+    "label_clearance",
+    "footer_collision",
+    "contrast",
+    "text_wrapping",
+    "placeholder_content",
+    "reading_order",
+}
+SECURITY_BOUNDARY_TRACE_ROLES = {
+    "role": "role_object_ids",
+    "artifact": "artifact_object_ids",
+    "checker": "checker_object_ids",
+    "decision": "decision_object_ids",
+    "failure": "failure_object_ids",
+}
+TRACE_DIRECTIONS = {"left-to-right", "right-to-left", "top-to-bottom", "bottom-to-top", "radial"}
+CRITICAL_ARTIFACT_TRACE_ROLES = {
+    "producer": "producer_object_ids",
+    "checker": "checker_object_ids",
+    "consumer": "consumer_object_ids",
+    "connector": "connector_object_ids",
 }
 
 INDIVIDUAL_COMPONENT_WEIGHTS = {
@@ -250,30 +283,134 @@ def read_inspect(path: Path) -> list[dict]:
     return records
 
 
+def png_dimensions(path: Path) -> tuple[int, int]:
+    try:
+        with path.open("rb") as source:
+            header = source.read(24)
+    except OSError as exc:
+        raise ValueError(f"cannot read PNG {path}: {exc}") from exc
+    if header[:8] != b"\x89PNG\r\n\x1a\n" or len(header) < 24:
+        raise ValueError(f"not a PNG: {path}")
+    return int.from_bytes(header[16:20], "big"), int.from_bytes(header[20:24], "big")
+
+
+def resolve_manifest_file(base: Path, relative: Path, label: str, failures: list):
+    candidate = base / relative
+    if not candidate.is_file():
+        failures.append(f"{label} is missing")
+        return None
+    try:
+        resolved = candidate.resolve(strict=True)
+        resolved.relative_to(base.resolve())
+    except (OSError, ValueError):
+        failures.append(f"{label} resolves outside the manifest directory")
+        return None
+    return resolved
+
+
 def validate_render_manifest(path: Path, expected_slides: int) -> list[str]:
     failures: list[str] = []
     manifest = read_json(path)
+    if manifest.get("schema_version") != RENDER_MANIFEST_SCHEMA_VERSION:
+        failures.append(
+            f"render manifest schema_version must be {RENDER_MANIFEST_SCHEMA_VERSION}"
+        )
     for name in ("renderer", "renderer_version", "command", "generated_at"):
         if not isinstance(manifest.get(name), str) or not manifest[name].strip():
             failures.append(f"render manifest {name} is missing")
+    toolchain = manifest.get("toolchain")
+    if not isinstance(toolchain, dict):
+        failures.append("render manifest toolchain is missing")
+    else:
+        for name in sorted(RENDER_TOOLCHAIN_FIELDS):
+            if not isinstance(toolchain.get(name), str) or not toolchain[name].strip():
+                failures.append(f"render manifest toolchain {name} is missing")
+        for name in ("renderer", "renderer_version", "command"):
+            if isinstance(toolchain.get(name), str) and manifest.get(name) != toolchain[name]:
+                failures.append(f"render manifest top-level {name} disagrees with toolchain")
+    producer = manifest.get("producer")
+    if not isinstance(producer, dict):
+        failures.append("render manifest producer is missing")
+    else:
+        kind = producer.get("kind")
+        command = producer.get("command")
+        if kind not in {"manual", "script"}:
+            failures.append("render manifest producer kind must be manual or script")
+        if not isinstance(command, str) or not command.strip():
+            failures.append("render manifest producer command is missing")
+        if kind == "script":
+            for field in ("source_path", "source_sha256"):
+                if not isinstance(producer.get(field), str) or not producer[field].strip():
+                    failures.append(f"render manifest script producer {field} is missing")
+            source_text = producer.get("source_path")
+            if isinstance(source_text, str) and source_text.strip():
+                source = Path(source_text)
+                if source.is_absolute() or ".." in source.parts:
+                    failures.append("render manifest producer source path must stay inside the manifest directory")
+                else:
+                    source = resolve_manifest_file(
+                        path.parent, source, "render manifest producer source", failures,
+                    )
+                    if source is not None and producer.get("source_sha256") != sha256(source):
+                        failures.append("render manifest producer source hash is stale")
+            lock_path = producer.get("lockfile_path")
+            lock_hash = producer.get("lockfile_sha256")
+            if (lock_path is None) != (lock_hash is None):
+                failures.append("render manifest producer lockfile path and hash must appear together")
+            elif isinstance(lock_path, str) and lock_path.strip():
+                lockfile = Path(lock_path)
+                if lockfile.is_absolute() or ".." in lockfile.parts:
+                    failures.append("render manifest producer lockfile path must stay inside the manifest directory")
+                else:
+                    lockfile = resolve_manifest_file(
+                        path.parent, lockfile, "render manifest producer lockfile", failures,
+                    )
+                    if lockfile is not None and lock_hash != sha256(lockfile):
+                        failures.append("render manifest producer lockfile hash is stale")
     if manifest.get("slide_count") != expected_slides:
         failures.append("render manifest declared slide count does not match PPTX")
     slides = manifest.get("slides")
     if not isinstance(slides, list) or len(slides) != expected_slides:
-        return ["render manifest slide count does not match PPTX"]
+        return [*failures, "render manifest slide count does not match PPTX"]
+    seen_paths: set[str] = set()
     for index, item in enumerate(slides, 1):
         if not isinstance(item, dict) or not isinstance(item.get("path"), str):
             failures.append(f"render manifest slide {index} is invalid")
             continue
-        if not isinstance(item.get("width"), int) or not isinstance(item.get("height"), int):
-            failures.append(f"render manifest slide {index} dimensions are missing")
-        image = Path(item["path"])
-        if not image.is_absolute():
-            image = path.parent / image
-        if not image.is_file():
-            failures.append(f"rendered slide {index} is missing")
-        elif item.get("sha256") != sha256(image):
+        width = item.get("width")
+        height = item.get("height")
+        if (
+            not isinstance(width, int) or isinstance(width, bool)
+            or not isinstance(height, int) or isinstance(height, bool)
+            or width <= 0 or height <= 0
+        ):
+            failures.append(f"render manifest slide {index} dimensions must be positive integers")
+        image_path = Path(item["path"])
+        if image_path.is_absolute():
+            failures.append(f"render manifest slide {index} uses an absolute path")
+            continue
+        if ".." in image_path.parts:
+            failures.append(f"render manifest slide {index} escapes the manifest directory")
+            continue
+        canonical = image_path.as_posix()
+        if canonical in seen_paths:
+            failures.append(f"render manifest slide {index} duplicates an earlier slide path")
+            continue
+        seen_paths.add(canonical)
+        image = resolve_manifest_file(path.parent, image_path, f"rendered slide {index}", failures)
+        if image is None:
+            continue
+        if item.get("sha256") != sha256(image):
             failures.append(f"rendered slide {index} hash is stale")
+            continue
+        if isinstance(width, int) and not isinstance(width, bool) and isinstance(height, int) and not isinstance(height, bool) and width > 0 and height > 0:
+            try:
+                actual_width, actual_height = png_dimensions(image)
+            except ValueError as exc:
+                failures.append(f"rendered slide {index} is invalid: {exc}")
+            else:
+                if (width, height) != (actual_width, actual_height):
+                    failures.append(f"rendered slide {index} dimensions do not match PNG metadata")
     return failures
 
 
@@ -1350,6 +1487,12 @@ def command_slide_gate(args: argparse.Namespace) -> int:
     if slide_count < 1:
         failures.append("PPTX contains no slides")
     failures.extend(validate_render_manifest(paths["render-manifest"], slide_count))
+    render_manifest = read_json(paths["render-manifest"])
+    manifest_slides = render_manifest.get("slides")
+    expected_render_hashes = [
+        item.get("sha256") for item in manifest_slides
+        if isinstance(item, dict) and isinstance(item.get("sha256"), str)
+    ] if isinstance(manifest_slides, list) else []
     requested_slide_count = brief.get("slide_count")
     if not isinstance(requested_slide_count, int) or requested_slide_count < 1:
         raise SystemExit("brief slide_count must be a positive integer")
@@ -1374,7 +1517,7 @@ def command_slide_gate(args: argparse.Namespace) -> int:
     required_sets: dict[str, set[str]] = {}
     for name in (
         "semantic_required_ids", "gist_required_ids", "reconstruction_required_ids",
-        "executive_required_ids", "headline_required_ids",
+        "executive_required_ids", "headline_required_ids", "thumbnail_mechanism_required_ids",
     ):
         values = visual_baseline.get(name)
         if not isinstance(values, list) or not values:
@@ -1395,9 +1538,17 @@ def command_slide_gate(args: argparse.Namespace) -> int:
     semantic_records: list[dict] = []
     semantic_kinds = {"node", "connector", "boundary"}
     kind_counts = {kind: 0 for kind in semantic_kinds}
+    object_by_id: dict[str, dict] = {}
     for item in objects:
         if not isinstance(item, dict):
             raise SystemExit("visual model object must be an object")
+        object_id = item.get("id")
+        if not isinstance(object_id, str) or not object_id.strip():
+            failures.append("visual model object id is missing")
+        elif object_id in object_by_id:
+            failures.append(f"visual model duplicates object {object_id}")
+        else:
+            object_by_id[object_id] = item
         baseline_ids = item.get("baseline_ids", [])
         point_ids = item.get("point_ids", [])
         model_ids = item.get("model_ids", [])
@@ -1462,6 +1613,155 @@ def command_slide_gate(args: argparse.Namespace) -> int:
         failures.append("structural Point requires at least two real connector objects")
     if point_boundaries and kind_counts["boundary"] < 1:
         failures.append("Point trust boundaries require at least one visible boundary object")
+
+    def trace_objects(trace: dict, trace_label: str, field: str) -> list[dict]:
+        values = trace.get(field)
+        if not isinstance(values, list) or not values or any(
+            not isinstance(value, str) or not value.strip() for value in values
+        ):
+            failures.append(f"{trace_label} {field} must be a non-empty object ID list")
+            return []
+        unknown = [value for value in values if value not in object_by_id]
+        if unknown:
+            failures.append(f"{trace_label} references unknown visual objects: " + ", ".join(unknown))
+        return [object_by_id[value] for value in values if value in object_by_id]
+
+    def trace_paths(trace: dict, trace_label: str, connector_ids: set[str], stages: list[tuple[set[str], set[str]]]) -> None:
+        rows = trace.get("connector_paths")
+        if not isinstance(rows, list) or not rows:
+            failures.append(f"{trace_label} connector_paths must be a non-empty array")
+            return
+        graph: dict[str, set[str]] = {}
+        for row in rows:
+            if not isinstance(row, dict):
+                failures.append(f"{trace_label} connector_paths entries must be objects")
+                continue
+            connector_id = row.get("connector_object_id")
+            source_id = row.get("from_object_id")
+            target_id = row.get("to_object_id")
+            if not all(isinstance(value, str) and value.strip() for value in (connector_id, source_id, target_id)):
+                failures.append(f"{trace_label} connector_paths entries require connector, from, and to object IDs")
+                continue
+            if connector_id not in connector_ids:
+                failures.append(f"{trace_label} connector path references an undeclared connector")
+            if source_id not in object_by_id or target_id not in object_by_id:
+                failures.append(f"{trace_label} connector path references an unknown endpoint")
+                continue
+            graph.setdefault(source_id, set()).add(target_id)
+        for sources, targets in stages:
+            frontier = set(sources)
+            reached: set[str] = set()
+            while frontier:
+                current = frontier.pop()
+                if current in reached:
+                    continue
+                reached.add(current)
+                frontier.update(graph.get(current, set()) - reached)
+            if targets and not reached.intersection(targets):
+                failures.append(f"{trace_label} connector paths do not connect required trace stages")
+
+    def trace_roles_are_distinct(trace_label: str, role_rows: dict, roles: tuple[str, ...]) -> None:
+        seen: dict[str, str] = {}
+        for role in roles:
+            for row in role_rows.get(role, []):
+                object_id = row["id"]
+                previous = seen.get(object_id)
+                if previous and previous != role:
+                    failures.append(f"{trace_label} collapses {previous} and {role} into one visual object")
+                else:
+                    seen[object_id] = role
+
+    trace_rows = visual_model.get("critical_artifact_traces")
+    if not isinstance(trace_rows, list) or not trace_rows:
+        failures.append("critical artifact trace is missing")
+    else:
+        trace_ids: set[str] = set()
+        for trace in trace_rows:
+            if not isinstance(trace, dict):
+                failures.append("critical artifact trace must be an object")
+                continue
+            trace_id = trace.get("id")
+            if not isinstance(trace_id, str) or not trace_id.strip():
+                failures.append("critical artifact trace id is missing")
+            elif trace_id in trace_ids:
+                failures.append(f"critical artifact trace duplicates {trace_id}")
+            else:
+                trace_ids.add(trace_id)
+            trace_label = f"critical artifact trace {trace_id or '<unknown>'}"
+            trace_roles = {
+                role: trace_objects(trace, trace_label, field)
+                for role, field in CRITICAL_ARTIFACT_TRACE_ROLES.items()
+            }
+            direction = trace.get("visible_direction")
+            if direction not in TRACE_DIRECTIONS:
+                failures.append(f"{trace_label} visible_direction is invalid")
+            trace_roles_are_distinct(trace_label, trace_roles, ("producer", "checker", "consumer"))
+            connector_ids = {row["id"] for row in trace_roles["connector"]}
+            trace_paths(
+                trace,
+                trace_label,
+                connector_ids,
+                [
+                    ({row["id"] for row in trace_roles["producer"]}, {row["id"] for row in trace_roles["checker"]}),
+                    ({row["id"] for row in trace_roles["checker"]}, {row["id"] for row in trace_roles["consumer"]}),
+                ],
+            )
+            if trace_roles["connector"] and any(row.get("kind") != "connector" for row in trace_roles["connector"]):
+                failures.append(f"{trace_label} connector_object_ids must map to connector objects")
+
+    security_boundary_required = visual_baseline.get("security_boundary_required")
+    if not isinstance(security_boundary_required, bool):
+        failures.append("visual baseline security_boundary_required must be boolean")
+    elif security_boundary_required:
+        expected = visual_baseline.get("security_boundary_model_ids")
+        if not isinstance(expected, dict):
+            failures.append("visual baseline security_boundary_model_ids is missing")
+            expected = {}
+        trace = visual_model.get("security_boundary_trace")
+        if not isinstance(trace, dict):
+            failures.append("security boundary trace is missing")
+        else:
+            security_roles = {}
+            for role, field in SECURITY_BOUNDARY_TRACE_ROLES.items():
+                expected_ids = expected.get(role)
+                if not isinstance(expected_ids, list) or not expected_ids or any(
+                    not isinstance(value, str) or not value.strip() for value in expected_ids
+                ):
+                    failures.append(f"visual baseline security boundary {role} model IDs are invalid")
+                    expected_ids = []
+                elif not set(expected_ids).issubset(valid_model_ids):
+                    failures.append(f"visual baseline security boundary {role} references unknown model IDs")
+                rows = trace_objects(trace, "security boundary trace", field)
+                security_roles[role] = rows
+                mapped_ids = {
+                    model_id
+                    for row in rows
+                    for model_id in row.get("model_ids", [])
+                }
+                if expected_ids and not set(expected_ids).issubset(mapped_ids):
+                    failures.append(
+                        f"security boundary trace {field} does not map every required model ID"
+                    )
+            direction = trace.get("visible_direction")
+            if direction not in TRACE_DIRECTIONS:
+                failures.append("security boundary trace visible_direction is invalid")
+            trace_roles_are_distinct(
+                "security boundary trace", security_roles, ("role", "checker", "decision", "failure"),
+            )
+            connector_rows = trace_objects(trace, "security boundary trace", "connector_object_ids")
+            if connector_rows and any(row.get("kind") != "connector" for row in connector_rows):
+                failures.append("security boundary trace connector_object_ids must map to connector objects")
+            connector_ids = {row["id"] for row in connector_rows}
+            trace_paths(
+                trace,
+                "security boundary trace",
+                connector_ids,
+                [
+                    ({row["id"] for row in security_roles["role"]}, {row["id"] for row in security_roles["checker"]}),
+                    ({row["id"] for row in security_roles["checker"]}, {row["id"] for row in security_roles["decision"]}),
+                    ({row["id"] for row in security_roles["decision"]}, {row["id"] for row in security_roles["failure"]}),
+                ],
+            )
 
     measured_share = 0.0
     if semantic_records:
@@ -1631,6 +1931,47 @@ def command_slide_gate(args: argparse.Namespace) -> int:
     for name in ("full_size_render_inspected", "thumbnail_render_inspected", "structural_test_passed", "slide_count_match"):
         if visual.get(name) is not True:
             failures.append(f"visual hard check {name} must be true")
+    for name in ("reviewer_provider", "reviewer_role", "reviewer_independence_basis", "author_provider"):
+        if not isinstance(visual.get(name), str) or not visual[name].strip():
+            failures.append(f"visual {name} is missing")
+    review_pass = visual.get("review_pass")
+    if not isinstance(review_pass, int) or isinstance(review_pass, bool) or review_pass < 2:
+        failures.append("visual review_pass must record a render → fix → verify cycle (at least 2)")
+    same_engine = (
+        visual.get("reviewer_model") == visual.get("author_model")
+        and visual.get("reviewer_provider") == visual.get("author_provider")
+    )
+    allowed_independence = {"different-provider", "human", "separate-session"}
+    if visual.get("reviewer_independence_basis") not in allowed_independence:
+        failures.append("visual reviewer_independence_basis is invalid")
+    elif same_engine and visual.get("reviewer_independence_basis") != "separate-session":
+        failures.append("same-model visual review must declare a separate-session independence basis")
+    thumbnail_gist = visual.get("thumbnail_raw_gist")
+    if not isinstance(thumbnail_gist, str) or not thumbnail_gist.strip():
+        failures.append("visual thumbnail raw gist is missing")
+    thumbnail_answers = visual.get("thumbnail_raw_mechanism_answers")
+    if not isinstance(thumbnail_answers, dict) or not thumbnail_answers or any(
+        not isinstance(value, str) or not value.strip() for value in thumbnail_answers.values()
+    ):
+        failures.append("visual thumbnail mechanism raw answers are missing")
+    thumbnail_ids = visual.get("thumbnail_mechanism_recovered_ids")
+    if not isinstance(thumbnail_ids, list) or any(not isinstance(value, str) or not value.strip() for value in thumbnail_ids):
+        failures.append("visual thumbnail mechanism recovered IDs are missing")
+    elif not required_sets["thumbnail_mechanism_required_ids"].issubset(set(thumbnail_ids)):
+        failures.append("visual thumbnail mechanism misses required baseline IDs")
+    rendered_hashes = visual.get("rendered_slide_sha256s")
+    if rendered_hashes != expected_render_hashes:
+        failures.append("visual rendered slide hashes do not match the render manifest")
+    bug_hunt = visual.get("bug_hunt_checks")
+    if not isinstance(bug_hunt, dict):
+        failures.append("visual bug_hunt_checks are missing")
+    else:
+        missing_bug_hunts = VISUAL_BUG_HUNT_CHECKS - set(bug_hunt)
+        if missing_bug_hunts:
+            failures.append("visual bug hunt checks are missing: " + ", ".join(sorted(missing_bug_hunts)))
+        for name in sorted(VISUAL_BUG_HUNT_CHECKS & set(bug_hunt)):
+            if bug_hunt[name] is not True:
+                failures.append(f"visual bug hunt {name} must be completed")
     support_blocks = visual.get("non_diagram_support_blocks")
     if not isinstance(support_blocks, int) or support_blocks > 3:
         failures.append("non-diagram support blocks must be an integer no greater than 3")
@@ -1759,6 +2100,106 @@ def command_package(args: argparse.Namespace) -> int:
     return 0
 
 
+def validate_package_members(bundle: zipfile.ZipFile, root: Path) -> list[zipfile.ZipInfo]:
+    members = bundle.infolist()
+    if len(members) > MAX_PACKAGE_MEMBERS:
+        raise ValueError(f"package has more than {MAX_PACKAGE_MEMBERS} members")
+    total_bytes = 0
+    names: set[str] = set()
+    approved: list[zipfile.ZipInfo] = []
+    for member in members:
+        name = member.filename
+        member_path = Path(name)
+        if member.flag_bits & 0x1:
+            raise ValueError(f"package member is encrypted: {name}")
+        if stat.S_ISLNK(member.external_attr >> 16):
+            raise ValueError(f"package member is a symlink: {name}")
+        if member_path.is_absolute() or ".." in member_path.parts:
+            raise ValueError(f"archive member escapes extraction root: {name}")
+        canonical = member_path.as_posix()
+        if not canonical or canonical == "." or canonical in names:
+            raise ValueError(f"package has duplicate or invalid member path: {name}")
+        names.add(canonical)
+        target = (root / member_path).resolve()
+        try:
+            target.relative_to(root)
+        except ValueError as exc:
+            raise ValueError(f"archive member escapes extraction root: {name}") from exc
+        if member.is_dir():
+            approved.append(member)
+            continue
+        if member.file_size > MAX_PACKAGE_MEMBER_BYTES:
+            raise ValueError(f"package member exceeds byte limit: {name}")
+        total_bytes += member.file_size
+        if total_bytes > MAX_PACKAGE_TOTAL_BYTES:
+            raise ValueError("package exceeds total uncompressed byte limit")
+        if member.file_size and (
+            not member.compress_size
+            or member.file_size > member.compress_size * MAX_PACKAGE_COMPRESSION_RATIO
+        ):
+            raise ValueError(f"package member exceeds compression ratio limit: {name}")
+        approved.append(member)
+    return approved
+
+
+def extract_package_members(bundle: zipfile.ZipFile, members: list[zipfile.ZipInfo], root: Path) -> None:
+    for member in members:
+        target = root / member.filename
+        if member.is_dir():
+            target.mkdir(parents=True, exist_ok=True)
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with bundle.open(member) as source, target.open("wb") as destination:
+            shutil.copyfileobj(source, destination)
+        if target.stat().st_size != member.file_size:
+            raise OSError(f"extracted size does not match ZIP metadata: {member.filename}")
+
+
+def command_verify_package(args: argparse.Namespace) -> int:
+    archive = Path(args.archive).resolve()
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    manifest_relative = Path(args.render_manifest)
+    deck_relative = Path(args.deck)
+    failures: list[str] = []
+    archive_hash = None
+    if not archive.is_file():
+        failures.append(f"package archive is missing: {archive}")
+    else:
+        archive_hash = sha256(archive)
+    if (
+        manifest_relative.is_absolute() or deck_relative.is_absolute()
+        or ".." in manifest_relative.parts or ".." in deck_relative.parts
+    ):
+        failures.append("package verification paths must be package-relative")
+    if not failures:
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                root = Path(directory).resolve()
+                with zipfile.ZipFile(archive) as bundle:
+                    members = validate_package_members(bundle, root)
+                    extract_package_members(bundle, members, root)
+                manifest = root / manifest_relative
+                deck = root / deck_relative
+                if not manifest.is_file():
+                    failures.append("packaged render manifest is missing")
+                if not deck.is_file():
+                    failures.append("packaged deck is missing")
+                if not failures:
+                    failures.extend(validate_render_manifest(manifest, pptx_slide_count(deck)))
+        except (OSError, ValueError, SystemExit, zipfile.BadZipFile) as exc:
+            failures.append(f"cannot verify package: {exc}")
+    result = {
+        "gate": "package-render-manifest",
+        "archive_sha256": archive_hash,
+        "passed": not failures,
+        "failures": failures,
+    }
+    write_json(output, result)
+    print(json.dumps(result, ensure_ascii=False))
+    return 0 if result["passed"] else 2
+
+
 def parser() -> argparse.ArgumentParser:
     value = argparse.ArgumentParser(description=__doc__)
     commands = value.add_subparsers(dest="command", required=True)
@@ -1809,6 +2250,13 @@ def parser() -> argparse.ArgumentParser:
     package.add_argument("--root", required=True)
     package.add_argument("--output", required=True)
     package.set_defaults(func=command_package)
+
+    verify_package = commands.add_parser("verify-package")
+    verify_package.add_argument("--archive", required=True)
+    verify_package.add_argument("--deck", required=True, help="deck path relative to the package root")
+    verify_package.add_argument("--render-manifest", required=True, help="manifest path relative to the package root")
+    verify_package.add_argument("--output", required=True)
+    verify_package.set_defaults(func=command_verify_package)
     return value
 
 

@@ -27,7 +27,9 @@ Component scores are pre-build evidence only. They never replace the following s
 - A technical executive recovers every baseline executive ID from raw answers.
 - The headline is domain-first, plain-language, assertion-led, and recovers every baseline headline ID. Review-process or audit language is absent from audience-facing copy.
 - No unexplained critical term remains; no more than three non-diagram support blocks are used.
-- Full-size and thumbnail renders were inspected; structural tests passed; every render hard check is zero.
+- Full-size and thumbnail renders were inspected; raw thumbnail gist and mechanism answers recover the declared thumbnail baseline IDs; rendered-slide hashes match the manifest; all bug-hunt checks completed; visual QA includes a render → fix → verify cycle; every render hard check is zero.
+- Render manifest is schema v2: all slide paths are relative, symlink-confined to the manifest directory after clean extraction, match image hashes and PNG dimensions, and declare renderer/toolchain plus manual-or-script producer provenance. A declared script source or lockfile must be included and hash-valid; schema-v1 trails are rebuilt rather than grandfathered.
+- The visual model contains a distinct, direction-declared producer → checker → consumer trace with declared connector paths. For a required security boundary it also maps every expected role → artifact → checker → separate decision → failure model ID and connects role → checker → decision → failure through declared connector paths.
 - A prior-deck comparison, when required, occurs only after blind review and improves every recorded user-rejected dimension without accuracy, readability, or scanability regression.
 
 ## Scored gate

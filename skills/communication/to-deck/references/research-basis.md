@@ -9,6 +9,8 @@ Visual explanation and cognition:
 - Chandler & Sweller, integrating mutually referring text and diagrams, peer-reviewed: https://doi.org/10.1111/j.2044-8279.1992.tb01017.x
 - Potter et al., rapid conceptual gist versus deeper reconstruction, peer-reviewed: https://doi.org/10.3758/s13414-013-0605-z
 - Alley et al., assertion-evidence headlines for engineering presentations, peer-reviewed: https://doi.org/10.1115/IMECE2004-61827
+- Sweller, cognitive load during problem solving, peer-reviewed: https://doi.org/10.1207/s15516709cog1202_4
+- Mayer & Moreno, theory-based ways to reduce extraneous multimedia load, peer-reviewed: https://doi.org/10.1207/S15326985EP3801_6
 
 Artifact evaluation and iterative review:
 
@@ -31,6 +33,7 @@ Rendering and accessibility:
 - WCAG 2.2 contrast and non-color semantics, W3C standard: https://www.w3.org/TR/WCAG22/
 - Microsoft PowerPoint accessibility guidance: https://support.microsoft.com/en-US/accessibility/powerpoint/make-your-powerpoint-presentations-accessible-to-people-with-disabilities
 - Open XML validation API: https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.validation.openxmlvalidator
+- Reproducible Builds definition and verification model: https://reproducible-builds.org/docs/definition/
 
 Public workflow references:
 
