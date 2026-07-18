@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import hashlib
+import html
 import json
+import re
 import sys
 import zipfile
 from pathlib import Path
@@ -28,6 +30,28 @@ def slide_count(path: Path) -> int:
     with zipfile.ZipFile(path) as archive:
         xml = archive.read("ppt/presentation.xml").decode("utf-8")
     return xml.count("<p:sldId ")
+
+
+def slide_number(name: str) -> int:
+    match = re.search(r"slide(\d+)\.xml", name)
+    if match is None:
+        raise ValueError(f"not a slide XML name: {name}")
+    return int(match.group(1))
+
+
+def slide_texts(path: Path) -> dict[int, str]:
+    """Extract only visible run text from each slide for semantic regression gates."""
+    with zipfile.ZipFile(path) as archive:
+        slide_names = sorted(
+            (name for name in archive.namelist() if re.fullmatch(r"ppt/slides/slide\d+\.xml", name)),
+            key=slide_number,
+        )
+        return {
+            slide_number(name): " ".join(
+                html.unescape(text) for text in re.findall(r"<a:t[^>]*>(.*?)</a:t>", archive.read(name).decode("utf-8"), re.DOTALL)
+            )
+            for name in slide_names
+        }
 
 
 def main() -> int:
@@ -56,7 +80,7 @@ def main() -> int:
 
     summary = ROOT / provenance["summary"]
     structural = ROOT / provenance["structural"]
-    for deck, expected in ((summary, 2), (structural, 15)):
+    for deck, expected in ((summary, 2), (structural, 16)):
         if not deck.exists():
             failures.append(f"missing deck: {deck.relative_to(ROOT)}")
         elif slide_count(deck) != expected:
@@ -99,14 +123,49 @@ def main() -> int:
         failures.append("prose trace lacks the required security-role/action vocabulary")
 
     must_see = set(crosswalk.get("summary_must_see_ids", []))
-    required_must_see = {"C-001", "C-002", "C-004", "C-006", "C-007", "E-013", "E-015", "E-018", "B-006"}
+    required_must_see = {"C-001", "C-002", "C-004", "C-006", "C-007", "E-010", "E-012", "E-013", "E-015", "E-018", "B-006"}
     if must_see != required_must_see:
         failures.append("summary must-see IDs do not match full Point core mechanism")
-    if len(crosswalk.get("semantic_invariants", [])) < 6:
+    if len(crosswalk.get("semantic_invariants", [])) < 8:
         failures.append("crosswalk lacks full-Point semantic invariants")
 
+    # Unlike a coverage ledger, these checks inspect rendered-slide text for the
+    # ownership, internal-state, failure, term-onboarding, and source-visible
+    # facts that a previous prose-only build lost.
+    semantic_requirements = {
+        "summary": {
+            1: ("TDQE가 TD Quote를 생성·서명", "Verifier-signed Result", "키 소유 증명"),
+            2: ("키 소유 증명(Proof of Possession)", "TDQE가 서명", "NO KEY branch"),
+        },
+        "structural": {
+            2: ("Intel PCS", "PCCS", "PCS는 signed collateral의 권위 원천"),
+            3: ("선택한 암호 구현", "private key custody", "NO KEY"),
+            4: ("Verifier 내부 one-time context", "재시도는 기존 record를 닫고 새 nonce"),
+            5: ("B-002", "untrusted QGS"),
+            6: ("TDQE가 TD Quote를 생성·서명", "RP/KMS가 이를 Verifier에 전달"),
+            7: ("tdx-ra/key/v1", "field order", "64-byte REPORTDATA mapping"),
+            8: ("digest_suite_id", "issued → allow_consumed", "allow일 때만 K"),
+            9: ("키 소유 증명(PoP)", "ALLOW branch", "NO KEY branch"),
+            11: ("retained·terminal challenge 없이 Evidence freshness", "별도 검사 없는 private-key possession"),
+            12: ("RFC 9334 Background Check은 Attester→RP→Verifier", "runtime enforcement 보증이 아니다"),
+            14: ["collateral outage", "key rotation", "revoke·rollback", "공개 key 0"],
+            16: ("source_map stable reference", "source registry", "존재하지 않는 서지를 추정해 쓰지 않는다"),
+        },
+    }
+    rendered_text = {"summary": slide_texts(summary), "structural": slide_texts(structural)}
+    for deck_kind, slide_map in semantic_requirements.items():
+        for slide, tokens in slide_map.items():
+            text = rendered_text[deck_kind].get(slide, "")
+            absent = [token for token in tokens if token not in text]
+            if absent:
+                failures.append(f"{deck_kind} slide {slide} lost semantic text: {', '.join(absent)}")
+
+    source_rows = [row for row in rows if row.get("kind") == "source-reference"]
+    if any(row.get("slides") != [16] for row in source_rows):
+        failures.append("source references must be reader-visible on structural slide 16")
+
     report = {
-        "schema_version": "to-deck.prose-v2-gate.v1",
+        "schema_version": "to-deck.prose-v3-gate.v1",
         "passed": not failures,
         "failures": failures,
         "canonical_point_sha256": expected_hash,

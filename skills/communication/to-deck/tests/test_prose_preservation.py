@@ -29,10 +29,17 @@ class PointProsePreservationTests(unittest.TestCase):
         self.assertIn("diagram label", PROSE)
         self.assertIn("actor, concrete artifact, validation, separate policy owner, and action/failure", RUBRICS)
 
-    def test_korean_prose_rules_preserve_explicit_agency(self) -> None:
+    def test_model_fidelity_prevents_prose_only_coverage(self) -> None:
+        self.assertIn("Ownership is typed", PROSE)
+        self.assertIn("Retained state is not transport", PROSE)
+        self.assertIn("Summary term onboarding", PROSE)
+        self.assertIn("Reader-visible source markers", PROSE)
         self.assertIn("Verifier가", PROSE)
         self.assertIn("RP/KMS가", PROSE)
         self.assertIn("local term onboarding", SKILL)
+    def test_package_verification_uses_zip_root_paths(self) -> None:
+        self.assertIn("archive root must contain", CONTRACT)
+        self.assertIn("top-level staging directory", CONTRACT)
 
 
 if __name__ == "__main__":

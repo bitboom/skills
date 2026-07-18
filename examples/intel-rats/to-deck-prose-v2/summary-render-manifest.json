@@ -3,7 +3,7 @@
   "renderer": "soffice",
   "renderer_version": "LibreOffice 26.2.4.2 0229ac93fcf0d7cbc6376066c6f35021cef002dc",
   "command": "soffice --headless --convert-to pdf",
-  "generated_at": "2026-07-18T09:24:09Z",
+  "generated_at": "2026-07-18T10:04:20Z",
   "toolchain": {
     "renderer": "soffice",
     "renderer_version": "LibreOffice 26.2.4.2 0229ac93fcf0d7cbc6376066c6f35021cef002dc",
@@ -25,13 +25,13 @@
       "path": "final/summary/render/slide-1.png",
       "width": 2400,
       "height": 1350,
-      "sha256": "d9f372fa853a1afbbedffaca10a148cf1a4941134300f190ac8f8c309bd0d70f"
+      "sha256": "19d0dedc32cc2dbdc4ec2e9dcd7bc3492c936b74fc3fe034529cc5813e82d41d"
     },
     {
       "path": "final/summary/render/slide-2.png",
       "width": 2400,
       "height": 1350,
-      "sha256": "332b0827c6ca80e4aee0e7ab49679169f8fe04f4680da0acda91b42138618b43"
+      "sha256": "4ebad5892de31f19d1ef69d5ce11de317496bc053718abc851beb2ea894fb57a"
     }
   ]
 }

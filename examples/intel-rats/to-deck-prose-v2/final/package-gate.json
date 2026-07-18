@@ -1,6 +1,20 @@
 {
-  "gate": "package-render-manifest",
-  "archive_sha256": "188a8d5cb26c64616c56e2c8daacb03b0a8f2cd1436d3d30cd0e4d9845a6bc9d",
+  "schema_version": "to-deck.paired-package-gate.v3",
+  "archive": "intel-rats-prose-v3-review-trail.zip",
+  "archive_sha256": "c128c7c899cd37bbc3f777626c490b9e81142b8278da1941ff0b2c8c42ae4cf4",
   "passed": true,
-  "failures": []
+  "decks": {
+    "structural": {
+      "gate": "package-render-manifest",
+      "archive_sha256": "c128c7c899cd37bbc3f777626c490b9e81142b8278da1941ff0b2c8c42ae4cf4",
+      "passed": true,
+      "failures": []
+    },
+    "summary": {
+      "gate": "package-render-manifest",
+      "archive_sha256": "c128c7c899cd37bbc3f777626c490b9e81142b8278da1941ff0b2c8c42ae4cf4",
+      "passed": true,
+      "failures": []
+    }
+  }
 }

@@ -1,11 +1,13 @@
-# Intel RATS full-Point prose v2 paired deck
+# Intel RATS full-Point prose v3 paired deck
 
-This immutable round uses the canonical passed Point package directly, rather than the earlier selective `to-site.input.json` projection.
+This round reads the passed canonical Point directly, not the earlier selective projection.
 
-- Canonical Point hash: recorded in `input/point.sha256`
-- Summary: 2 slides, with deliberate omissions recorded in `final/summary-structural-crosswalk.json`
-- Structural: 15 slides, covering all canonical Point claims, nodes, edges, boundaries, context dependencies, proof/non-proof entries, implications, caveats, exclusions, and source IDs
-- Prose contract: `final/prose-trace.json` maps every Point claim to a visible Korean sentence
+- Point hash: `input/point.sha256`
+- Summary: 2 slides
+- Structural: 16 slides; all canonical claims, nodes, edges, boundaries, state, proof limits, caveats, implications, exclusions, and source markers are mapped
+- `final/prose-trace.json`: 10 reader-visible Korean claim sentences
+- `final/structural-coverage-map.json`: 88 canonical material IDs
+- `validate-prose-v2.py`: extracts actual PPTX slide text and fails on ownership, retained-state, summary-term, failure-branch, pilot-gate, and source-marker regressions
 
 ## Rebuild
 
@@ -15,4 +17,4 @@ npm run build
 npm run validate
 ```
 
-Render both decks using `skills/communication/to-deck/scripts/render_deck.py`. The package gate must be run only against the generated render manifests.
+Render using `skills/communication/to-deck/scripts/render_deck.py`. Run package verification against the generated render manifests only.

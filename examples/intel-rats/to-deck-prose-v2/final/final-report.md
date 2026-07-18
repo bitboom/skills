@@ -1,52 +1,41 @@
-# Intel RATS full-Point prose v2 — final review
+# Intel RATS full-Point prose v3 — review trail
 
-## Purpose
+## Canonical source
 
-This round corrects the earlier deck's source drift: the old build read a selective four-claim projection, while this round reads the passed canonical Point directly.
-
-## Canonical input
-
-- Point: `input/point.md`
-- Model: `input/point.yaml`
-- Gate: `input/point-gate.json` (`round: 4`, `score: 92`, `passed: true`)
+- `input/point.md` and `input/point.yaml`
+- passed Point gate: round 4, score 92
 - SHA-256: `59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891`
 
-## Improved To Deck contract exercised
+## Why v3 exists
 
-1. A selective projection cannot replace canonical `point.md` as prose source.
-2. `prose-trace.json` maps every Point claim to a visible Korean reader sentence.
-3. Each security relation retains actor → artifact → check → policy owner → action/failure semantics.
-4. A structural build fails if it omits canonical claims, model material, proof/non-proof entries, implications, caveats, exclusions, or source IDs.
+The first independent full-Point review found semantic loss despite clean rendering: Quote producer/transport ambiguity, a retained-context direction error, incomplete trust and profile qualifiers, and compressed proof/pilot/source language. v3 makes those facts reader-visible and adds PPTX-text regression checks.
 
-## Deliverables
+## Contract and deliverables
 
-| Product | Output | Scope |
-|---|---|---|
-| Summary | `summary/intel-tdx-attestation-prose-summary.pptx` | 2-slide release-control story |
-| Structural | `structural/intel-tdx-attestation-prose-structural.pptx` | 15-slide complete Point explanation |
-| Coverage | `structural-coverage-map.json` | 88 canonical material IDs mapped |
-| Prose trace | `prose-trace.json` | 10 Point claims with reader-visible Korean sentences |
-| Crosswalk | `summary-structural-crosswalk.json` | shared summary/structural invariants |
+- To Deck contract now requires canonical ownership, retained internal state, Summary term onboarding, reader-visible source markers, and a canonical-model review.
+- Summary: `summary/intel-tdx-attestation-prose-summary.pptx` (2 slides).
+- Structural: `structural/intel-tdx-attestation-prose-structural.pptx` (16 slides).
+- `prose-trace.json`: 10 Point claims mapped to visible Korean sentences.
+- `structural-coverage-map.json`: 88 / 88 canonical material IDs.
+- `summary-structural-crosswalk.json`: shared invariants.
 
-## Verification
+## Current verification evidence
 
 ```text
+To Deck tests: 24 / 24 passed
 npm run build: passed
 npm run validate: passed
-canonical Point hash: matched
-summary render: 2 / 2 PNG pages
-structural render: 15 / 15 PNG pages
-visual QA: full-size inspections of Summary 1–2 and Structural 4, 8, 9, 11, 12, 14, 15
+semantic gate: 2 summary + 16 structural PPTX slides; no ownership/state/source failures
+renders: 2 / 2 summary and 16 / 16 structural PNG pages
+full-size visual QA: Summary 1–2; Structural 2, 4–9, 11–12, 14–16
 ```
 
-The final full-size QA found and corrected one compressed proof-boundary sentence and one overly long pilot release-gate sentence. No clipping, actor-direction contradiction, or Key-release / Result ownership contradiction remained in the inspected final renders.
+The visual QA specifically checked the TDQE/QGS and PCS/PCCS distinctions, Verifier-owned retained context, signed Result vs release, visible ALLOW/NO KEY branches, proof limits, Intel-rats caveat, pilot gates, and source-map appendix.
 
-## Portable review package
+## Independent acceptance
 
-- Archive: `final/intel-rats-prose-v2-review-trail.zip`
-- SHA-256: delivered separately so the archive does not contain a self-referential hash
-- Package-render-manifest gate: passed; delivery report records the generated gate JSON outside the archive
+A read-only fresh-eyes reviewer compared canonical `point.md`/`point.yaml` to the actual PPTX text and all 18 rendered PNGs. **PASS**: the reviewer confirmed all ten required categories—ownership/transport, retained state, closed release/failure path, K/D/E profile, trust/DoS, proof limits, Intel-rats/RFC caveat, SGX-vs-TDX boundary, pilot ownership/gates, and Korean/source-marker legibility. No files were changed by the reviewer.
 
-## Caveat
+## Scope caveat
 
-This deck explains the passed Point and retains its stated scope: Intel-rats is a teaching/design-review lens, not a deployable verifier baseline or production approval.
+Intel-rats remains a teaching and design-review lens. It is not a deployable verifier baseline or proof of production approval.

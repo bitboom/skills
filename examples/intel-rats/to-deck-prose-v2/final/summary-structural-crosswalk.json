@@ -1,5 +1,5 @@
 {
-  "schema_version": "to-deck.summary-structural-crosswalk.v2",
+  "schema_version": "to-deck.summary-structural-crosswalk.v3",
   "point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
   "summary_deck": "final/summary/intel-tdx-attestation-prose-summary.pptx",
   "structural_deck": "final/structural/intel-tdx-attestation-prose-structural.pptx",
@@ -9,6 +9,8 @@
     "C-004",
     "C-006",
     "C-007",
+    "E-010",
+    "E-012",
     "E-013",
     "E-015",
     "E-018",
@@ -17,15 +19,17 @@
   "deliberate_summary_omissions": [
     "full threat model",
     "all collateral detail",
-    "complete K/D/E profile",
+    "complete K/D/E byte-level profile",
     "all caveats and pilot ownership"
   ],
   "semantic_invariants": [
-    "QGS transport is distinct from TDQE signing",
+    "TDQE signs TD Quote; QGS daemon only transports",
+    "TD returns Quote/key bytes to RP/KMS, which sends Evidence to Verifier",
+    "Verifier retained challenge state is internal state, not a transport artifact",
     "PCS authority is distinct from PCCS cache",
     "Verifier appraises Evidence while RP/KMS owns release",
-    "K/D/E bind key, context, and exact Quote independently",
+    "K/D/E bind key, context, and exact Quote independently under a version-fixed profile",
     "Result/time/E/K/PoP/one-time state are required before release",
-    "deny/replay/expiry/invalid collateral/failed PoP result in NO KEY"
+    "deny/replay/expiry/invalid collateral/failed PoP/terminal error result in NO KEY"
   ]
 }

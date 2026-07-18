@@ -13,7 +13,7 @@
         "st01-c-001"
       ],
       "coverage_role": "primary",
-      "prose_sentence": "Verifier가 Evidence를 평가해도 secret을 공개하지는 않는다. 공개 권한은 RP/KMS가 자신의 release policy로 Result를 확인한 뒤에만 행사한다."
+      "prose_sentence": "TDQE가 서명한 Quote를 Verifier가 Evidence appraisal policy로 평가해 Result를 만들고, RP/KMS가 Result·시간·E/K·PoP를 별도 release policy로 확인한 allow path에서만 same approved-K channel로 secret을 보낸다."
     },
     {
       "id": "C-002",
@@ -29,7 +29,7 @@
         "st10-c-002"
       ],
       "coverage_role": "primary",
-      "prose_sentence": "QGS가 Quote generation을 조율해도 signer는 TDQE다. Verifier가 Result를 서명해도 secret을 공개하는 owner는 RP/KMS다."
+      "prose_sentence": "QGS daemon은 TDREPORT와 Quote를 운반하지만 signer는 TDQE이며, PCS는 signed collateral의 권위 원천이고 PCCS는 cache/transport다. Verifier가 Result를 서명해도 secret을 공개하는 owner는 RP/KMS다."
     },
     {
       "id": "C-003",
@@ -43,7 +43,7 @@
         "st04-c-003"
       ],
       "coverage_role": "primary",
-      "prose_sentence": "untrusted path가 Quote를 재전송하거나 바꿔도, Verifier는 retained nonce·request·key binding을 다시 비교한다."
+      "prose_sentence": "untrusted path가 Evidence를 재전송하거나 바꿔도 Verifier가 retained nonce·request·key binding을 다시 비교하고, stale·invalid·outage path는 NO KEY로 끝낸다. 이 모델은 선택한 암호 구현과 TD 안 private-key custody도 신뢰 가정으로 둔다."
     },
     {
       "id": "C-004",
@@ -63,7 +63,7 @@
         "st09-c-004"
       ],
       "coverage_role": "primary",
-      "prose_sentence": "RP/KMS가 TD에서 받은 exact Quote, canonical key bytes, identical request context를 Verifier에 전달하고, Verifier는 retained context와 비교한다. deny·replay·expiry·invalid collateral·failed PoP는 NO KEY로 끝난다."
+      "prose_sentence": "Verifier가 nonce와 full expected context를 내부 상태로 보관하고 RP/KMS가 nonce·request context를 TD로 전달한다. TDQE-signed Quote와 canonical key bytes를 RP/KMS가 Verifier에 보내면 Verifier는 K/D/E와 retained state를 비교하고, deny·replay·expiry·invalid collateral·failed PoP는 NO KEY로 끝난다."
     },
     {
       "id": "C-005",
@@ -91,7 +91,7 @@
         "st09-c-006"
       ],
       "coverage_role": "primary",
-      "prose_sentence": "Verifier는 K/D/E를 재계산하고 signed Result에 verdict, policy version, E와 allow-only K를 넣으며 RP/KMS는 이를 다시 확인한다."
+      "prose_sentence": "Verifier는 version-fixed profile의 K/D/E를 재계산하고 Result에 profile/digest suite/policy/E와 allow-only K를 서명한다. RP/KMS는 이를 다시 확인하고 PoP와 same-key channel을 분리해 집행한다."
     },
     {
       "id": "C-007",
@@ -103,7 +103,7 @@
         "st11-c-007"
       ],
       "coverage_role": "primary",
-      "prose_sentence": "Quote는 reported TD state와 binding을 보여 주지만 code correctness, container identity, future safety, availability를 증명하지 않는다."
+      "prose_sentence": "전체 Quote→Result 경로는 reported TD state와 binding을 확인하지만 code correctness, container identity, future safety, retained-state 없는 freshness, 분리 검사 없는 PoP/authorization, availability를 증명하지 않는다."
     },
     {
       "id": "C-008",
@@ -115,7 +115,7 @@
         "st12-c-008"
       ],
       "coverage_role": "primary",
-      "prose_sentence": "Intel-rats는 판단 구조를 배우는 자료로 쓰되 deployable verifier baseline으로는 쓰지 않는다."
+      "prose_sentence": "Intel-rats는 역할·binding·failure state를 배우는 시각 자료지만 RFC 9334 Background Check route와 다르며, concrete Quote/DCAP API·정책 언어·운영 enforcement의 deployable baseline은 아니다."
     },
     {
       "id": "C-009",
@@ -139,7 +139,7 @@
         "st14-c-010"
       ],
       "coverage_role": "primary",
-      "prose_sentence": "첫 pilot은 하나의 revocable key-release path에서 owner와 negative test 기준을 먼저 확정한다."
+      "prose_sentence": "첫 pilot은 하나의 revocable key-release path에서 appraisal/release owner, terminal state, numeric collateral/clock/revocation SLO, policy audit, rotation/revoke/rollback, 0-key negative tests를 확정한다."
     },
     {
       "id": "N-001",
@@ -984,10 +984,10 @@
       "id": "S-001",
       "kind": "source-reference",
       "slides": [
-        15
+        16
       ],
       "object_ids": [
-        "st15-source-ledger"
+        "st16-source-map"
       ],
       "coverage_role": "appendix"
     },
@@ -995,10 +995,10 @@
       "id": "S-002",
       "kind": "source-reference",
       "slides": [
-        15
+        16
       ],
       "object_ids": [
-        "st15-source-ledger"
+        "st16-source-map"
       ],
       "coverage_role": "appendix"
     },
@@ -1006,10 +1006,10 @@
       "id": "S-003",
       "kind": "source-reference",
       "slides": [
-        15
+        16
       ],
       "object_ids": [
-        "st15-source-ledger"
+        "st16-source-map"
       ],
       "coverage_role": "appendix"
     },
@@ -1017,10 +1017,10 @@
       "id": "S-004",
       "kind": "source-reference",
       "slides": [
-        15
+        16
       ],
       "object_ids": [
-        "st15-source-ledger"
+        "st16-source-map"
       ],
       "coverage_role": "appendix"
     },
@@ -1028,10 +1028,10 @@
       "id": "S-005",
       "kind": "source-reference",
       "slides": [
-        15
+        16
       ],
       "object_ids": [
-        "st15-source-ledger"
+        "st16-source-map"
       ],
       "coverage_role": "appendix"
     },
@@ -1039,10 +1039,10 @@
       "id": "S-006",
       "kind": "source-reference",
       "slides": [
-        15
+        16
       ],
       "object_ids": [
-        "st15-source-ledger"
+        "st16-source-map"
       ],
       "coverage_role": "appendix"
     },
@@ -1050,10 +1050,10 @@
       "id": "S-007",
       "kind": "source-reference",
       "slides": [
-        15
+        16
       ],
       "object_ids": [
-        "st15-source-ledger"
+        "st16-source-map"
       ],
       "coverage_role": "appendix"
     },
@@ -1061,10 +1061,10 @@
       "id": "S-008",
       "kind": "source-reference",
       "slides": [
-        15
+        16
       ],
       "object_ids": [
-        "st15-source-ledger"
+        "st16-source-map"
       ],
       "coverage_role": "appendix"
     },
@@ -1072,10 +1072,10 @@
       "id": "S-009",
       "kind": "source-reference",
       "slides": [
-        15
+        16
       ],
       "object_ids": [
-        "st15-source-ledger"
+        "st16-source-map"
       ],
       "coverage_role": "appendix"
     },
@@ -1083,10 +1083,10 @@
       "id": "S-010",
       "kind": "source-reference",
       "slides": [
-        15
+        16
       ],
       "object_ids": [
-        "st15-source-ledger"
+        "st16-source-map"
       ],
       "coverage_role": "appendix"
     },
@@ -1094,10 +1094,10 @@
       "id": "S-011",
       "kind": "source-reference",
       "slides": [
-        15
+        16
       ],
       "object_ids": [
-        "st15-source-ledger"
+        "st16-source-map"
       ],
       "coverage_role": "appendix"
     },
@@ -1105,10 +1105,10 @@
       "id": "S-012",
       "kind": "source-reference",
       "slides": [
-        15
+        16
       ],
       "object_ids": [
-        "st15-source-ledger"
+        "st16-source-map"
       ],
       "coverage_role": "appendix"
     }
