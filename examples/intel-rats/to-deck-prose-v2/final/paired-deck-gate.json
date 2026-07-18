@@ -1,0 +1,11 @@
+{
+  "schema_version": "to-deck.prose-v2-gate.v1",
+  "passed": true,
+  "failures": [],
+  "canonical_point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "summary_slide_count": 2,
+  "structural_slide_count": 15,
+  "coverage_rows": 88,
+  "canonical_required_ids": 88,
+  "prose_claim_rows": 10
+}

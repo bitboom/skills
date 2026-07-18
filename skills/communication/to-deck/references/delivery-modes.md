@@ -10,6 +10,14 @@ A passed Point can need two different presentation products. They share the same
 
 Do not make a `summary` deck by shrinking the structural deck. Do not make a `structural` deck by exporting Point prose as slide bullets.
 
+## Canonical Point and prose source
+
+`point.md`, `point.yaml`, `point.sha256`, and `point-gate.json` are the one canonical Point package. Build inputs must hash to that package. A semantic projection is allowed only with a projection manifest that records the canonical Point hash and every material Point ID it preserves; it is a layout convenience, not the prose source.
+
+A structural deck is rejected when its build projection has fewer material claims, nodes, edges, boundaries, context dependencies, state transitions, proof/non-proof entries, caveats, or implications than canonical Point without a declared `summary` omission. When the projection conflicts with Point about an actor, artifact direction, trust boundary, or allow/deny outcome, return to Point rather than choosing either version silently.
+
+For reader-facing Korean, use `references/prose-preservation.md`: labels support the model, but each critical relation needs a sentence with actor → artifact → check → policy owner → action/failure.
+
 ## Summary: one or two slides
 
 The summary deck is a separate visual argument, not a table of contents.
@@ -26,14 +34,15 @@ The structural deck is a navigable visual projection of Point. It must represent
 
 ### Required inventory and coverage map
 
-Before storyboarding, create `structural-coverage-map.json` from the frozen Point package. It must enumerate every material:
+Before storyboarding, create `structural-coverage-map.json` and `prose-trace.json` from the frozen canonical Point package. They must enumerate every material:
 
 - Claim ID and claim text;
-- model node, edge, boundary, state, and decision-condition ID;
+- model node, edge, boundary, state, context dependency, and decision-condition ID;
 - source reference and locator used by the claim;
-- qualifier, assumption, threat/trust statement, proof, non-proof, caveat, failure state, developer implication, and executive implication.
+- qualifier, assumption, threat/trust statement, proof, non-proof, caveat, failure state, developer implication, and executive implication;
+- a reader-visible slide sentence that preserves the actor, artifact, check, policy owner, and action/failure for every critical relation.
 
-Each row maps to at least one slide number and editable object ID, with `coverage_role` of `primary`, `supporting`, `source-footer`, or `appendix`. Every `primary` relationship must be readable in the slide body; sources may be compressed to an appendix only if their linked claim has an on-slide source marker. The gate fails on unmapped material IDs, a source without a consuming claim, or an object that merges a required distinction.
+Each row maps to at least one slide number and editable object ID, with `coverage_role` of `primary`, `supporting`, `source-footer`, or `appendix`. Every `primary` relationship must be readable in the slide body; sources may be compressed to an appendix only if their linked claim has an on-slide source marker. A diagram label, object ID, footer, or arrow is not a prose-trace sentence. The gate fails on unmapped material IDs, a source without a consuming claim, an omitted Point material ID in a structural build projection, or an object that merges a required distinction.
 
 ### Structural information architecture
 

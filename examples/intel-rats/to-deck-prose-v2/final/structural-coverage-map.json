@@ -1,0 +1,1116 @@
+{
+  "schema_version": "to-deck.structural-coverage.v2",
+  "canonical_point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "deck": "final/structural/intel-tdx-attestation-prose-structural.pptx",
+  "coverage": [
+    {
+      "id": "C-001",
+      "kind": "claim",
+      "slides": [
+        1
+      ],
+      "object_ids": [
+        "st01-c-001"
+      ],
+      "coverage_role": "primary",
+      "prose_sentence": "Verifier가 Evidence를 평가해도 secret을 공개하지는 않는다. 공개 권한은 RP/KMS가 자신의 release policy로 Result를 확인한 뒤에만 행사한다."
+    },
+    {
+      "id": "C-002",
+      "kind": "claim",
+      "slides": [
+        2,
+        5,
+        10
+      ],
+      "object_ids": [
+        "st02-c-002",
+        "st05-c-002",
+        "st10-c-002"
+      ],
+      "coverage_role": "primary",
+      "prose_sentence": "QGS가 Quote generation을 조율해도 signer는 TDQE다. Verifier가 Result를 서명해도 secret을 공개하는 owner는 RP/KMS다."
+    },
+    {
+      "id": "C-003",
+      "kind": "claim",
+      "slides": [
+        3,
+        4
+      ],
+      "object_ids": [
+        "st03-c-003",
+        "st04-c-003"
+      ],
+      "coverage_role": "primary",
+      "prose_sentence": "untrusted path가 Quote를 재전송하거나 바꿔도, Verifier는 retained nonce·request·key binding을 다시 비교한다."
+    },
+    {
+      "id": "C-004",
+      "kind": "claim",
+      "slides": [
+        4,
+        5,
+        6,
+        8,
+        9
+      ],
+      "object_ids": [
+        "st04-c-004",
+        "st05-c-004",
+        "st06-c-004",
+        "st08-c-004",
+        "st09-c-004"
+      ],
+      "coverage_role": "primary",
+      "prose_sentence": "RP/KMS가 TD에서 받은 exact Quote, canonical key bytes, identical request context를 Verifier에 전달하고, Verifier는 retained context와 비교한다. deny·replay·expiry·invalid collateral·failed PoP는 NO KEY로 끝난다."
+    },
+    {
+      "id": "C-005",
+      "kind": "claim",
+      "slides": [
+        10
+      ],
+      "object_ids": [
+        "st10-c-005"
+      ],
+      "coverage_role": "primary",
+      "prose_sentence": "Verifier는 PCCS를 믿어서가 아니라 received collateral의 signature·chain·status·freshness를 확인해서만 사용한다."
+    },
+    {
+      "id": "C-006",
+      "kind": "claim",
+      "slides": [
+        7,
+        8,
+        9
+      ],
+      "object_ids": [
+        "st07-c-006",
+        "st08-c-006",
+        "st09-c-006"
+      ],
+      "coverage_role": "primary",
+      "prose_sentence": "Verifier는 K/D/E를 재계산하고 signed Result에 verdict, policy version, E와 allow-only K를 넣으며 RP/KMS는 이를 다시 확인한다."
+    },
+    {
+      "id": "C-007",
+      "kind": "claim",
+      "slides": [
+        11
+      ],
+      "object_ids": [
+        "st11-c-007"
+      ],
+      "coverage_role": "primary",
+      "prose_sentence": "Quote는 reported TD state와 binding을 보여 주지만 code correctness, container identity, future safety, availability를 증명하지 않는다."
+    },
+    {
+      "id": "C-008",
+      "kind": "claim",
+      "slides": [
+        12
+      ],
+      "object_ids": [
+        "st12-c-008"
+      ],
+      "coverage_role": "primary",
+      "prose_sentence": "Intel-rats는 판단 구조를 배우는 자료로 쓰되 deployable verifier baseline으로는 쓰지 않는다."
+    },
+    {
+      "id": "C-009",
+      "kind": "claim",
+      "slides": [
+        13
+      ],
+      "object_ids": [
+        "st13-c-009"
+      ],
+      "coverage_role": "primary",
+      "prose_sentence": "TDX Quote는 whole TD/VM state를 보고하므로 TD 안의 container identity를 자동으로 증명하지 않는다."
+    },
+    {
+      "id": "C-010",
+      "kind": "claim",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-c-010"
+      ],
+      "coverage_role": "primary",
+      "prose_sentence": "첫 pilot은 하나의 revocable key-release path에서 owner와 negative test 기준을 먼저 확정한다."
+    },
+    {
+      "id": "N-001",
+      "kind": "model-node",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-n-001"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "N-002",
+      "kind": "model-node",
+      "slides": [
+        1,
+        2,
+        4,
+        6,
+        8,
+        9,
+        14
+      ],
+      "object_ids": [
+        "st01-n-002",
+        "st02-n-002",
+        "st04-n-002",
+        "st06-n-002",
+        "st08-n-002",
+        "st09-n-002",
+        "st14-n-002"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "N-003",
+      "kind": "model-node",
+      "slides": [
+        1,
+        2,
+        4,
+        6,
+        8
+      ],
+      "object_ids": [
+        "st01-n-003",
+        "st02-n-003",
+        "st04-n-003",
+        "st06-n-003",
+        "st08-n-003"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "N-004",
+      "kind": "model-node",
+      "slides": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        9
+      ],
+      "object_ids": [
+        "st01-n-004",
+        "st02-n-004",
+        "st04-n-004",
+        "st05-n-004",
+        "st06-n-004",
+        "st09-n-004"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "N-005",
+      "kind": "model-node",
+      "slides": [
+        2,
+        5
+      ],
+      "object_ids": [
+        "st02-n-005",
+        "st05-n-005"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "N-006",
+      "kind": "model-node",
+      "slides": [
+        2,
+        5
+      ],
+      "object_ids": [
+        "st02-n-006",
+        "st05-n-006"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "N-007",
+      "kind": "model-node",
+      "slides": [
+        10
+      ],
+      "object_ids": [
+        "st10-n-007"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "N-008",
+      "kind": "model-node",
+      "slides": [
+        5,
+        10
+      ],
+      "object_ids": [
+        "st05-n-008",
+        "st10-n-008"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-001",
+      "kind": "model-edge",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-e-001"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-002",
+      "kind": "model-edge",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-e-002"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-003",
+      "kind": "model-edge",
+      "slides": [
+        4
+      ],
+      "object_ids": [
+        "st04-e-003"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-004",
+      "kind": "model-edge",
+      "slides": [
+        4
+      ],
+      "object_ids": [
+        "st04-e-004"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-005",
+      "kind": "model-edge",
+      "slides": [
+        4
+      ],
+      "object_ids": [
+        "st04-e-005"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-006",
+      "kind": "model-edge",
+      "slides": [
+        5
+      ],
+      "object_ids": [
+        "st05-e-006"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-007",
+      "kind": "model-edge",
+      "slides": [
+        5
+      ],
+      "object_ids": [
+        "st05-e-007"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-008",
+      "kind": "model-edge",
+      "slides": [
+        10
+      ],
+      "object_ids": [
+        "st10-e-008"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-009",
+      "kind": "model-edge",
+      "slides": [
+        5,
+        10
+      ],
+      "object_ids": [
+        "st05-e-009",
+        "st10-e-009"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-010",
+      "kind": "model-edge",
+      "slides": [
+        5
+      ],
+      "object_ids": [
+        "st05-e-010"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-011",
+      "kind": "model-edge",
+      "slides": [
+        5
+      ],
+      "object_ids": [
+        "st05-e-011"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-012",
+      "kind": "model-edge",
+      "slides": [
+        6
+      ],
+      "object_ids": [
+        "st06-e-012"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-013",
+      "kind": "model-edge",
+      "slides": [
+        6,
+        7,
+        8
+      ],
+      "object_ids": [
+        "st06-e-013",
+        "st07-e-013",
+        "st08-e-013"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-014",
+      "kind": "model-edge",
+      "slides": [
+        10
+      ],
+      "object_ids": [
+        "st10-e-014"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-015",
+      "kind": "model-edge",
+      "slides": [
+        8
+      ],
+      "object_ids": [
+        "st08-e-015"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-016",
+      "kind": "model-edge",
+      "slides": [
+        9
+      ],
+      "object_ids": [
+        "st09-e-016"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-017",
+      "kind": "model-edge",
+      "slides": [
+        9
+      ],
+      "object_ids": [
+        "st09-e-017"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "E-018",
+      "kind": "model-edge",
+      "slides": [
+        9
+      ],
+      "object_ids": [
+        "st09-e-018"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "B-001",
+      "kind": "model-boundary",
+      "slides": [
+        3
+      ],
+      "object_ids": [
+        "st03-b-001"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "B-002",
+      "kind": "model-boundary",
+      "slides": [
+        5
+      ],
+      "object_ids": [
+        "st05-b-002"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "B-003",
+      "kind": "model-boundary",
+      "slides": [
+        10
+      ],
+      "object_ids": [
+        "st10-b-003"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "B-004",
+      "kind": "model-boundary",
+      "slides": [
+        6,
+        7
+      ],
+      "object_ids": [
+        "st06-b-004",
+        "st07-b-004"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "B-005",
+      "kind": "model-boundary",
+      "slides": [
+        8
+      ],
+      "object_ids": [
+        "st08-b-005"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "B-006",
+      "kind": "model-boundary",
+      "slides": [
+        1,
+        8,
+        9
+      ],
+      "object_ids": [
+        "st01-b-006",
+        "st08-b-006",
+        "st09-b-006"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "B-007",
+      "kind": "model-boundary",
+      "slides": [
+        11,
+        13
+      ],
+      "object_ids": [
+        "st11-b-007",
+        "st13-b-007"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "X-001",
+      "kind": "context-dependency",
+      "slides": [
+        4,
+        7,
+        8
+      ],
+      "object_ids": [
+        "st04-x-001",
+        "st07-x-001",
+        "st08-x-001"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "X-002",
+      "kind": "context-dependency",
+      "slides": [
+        4,
+        6,
+        7
+      ],
+      "object_ids": [
+        "st04-x-002",
+        "st06-x-002",
+        "st07-x-002"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "X-003",
+      "kind": "context-dependency",
+      "slides": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "object_ids": [
+        "st06-x-003",
+        "st07-x-003",
+        "st08-x-003",
+        "st09-x-003"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "X-004",
+      "kind": "context-dependency",
+      "slides": [
+        6,
+        7,
+        8
+      ],
+      "object_ids": [
+        "st06-x-004",
+        "st07-x-004",
+        "st08-x-004"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "P-001",
+      "kind": "proves",
+      "text": "Quote integrity and credential linkage",
+      "slides": [
+        11
+      ],
+      "object_ids": [
+        "st11-prove-1"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "P-002",
+      "kind": "proves",
+      "text": "reported TD measurement/attribute/TCB state",
+      "slides": [
+        11
+      ],
+      "object_ids": [
+        "st11-prove-2"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "P-003",
+      "kind": "proves",
+      "text": "D matches retained context and K",
+      "slides": [
+        11
+      ],
+      "object_ids": [
+        "st11-prove-3"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "P-004",
+      "kind": "proves",
+      "text": "Result binds E, policy version, and allow-only K",
+      "slides": [
+        11
+      ],
+      "object_ids": [
+        "st11-prove-4"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "P-005",
+      "kind": "proves",
+      "text": "reference-value comparison",
+      "slides": [
+        11
+      ],
+      "object_ids": [
+        "st11-prove-5"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "NP-001",
+      "kind": "does-not-prove",
+      "text": "code correctness",
+      "slides": [
+        11
+      ],
+      "object_ids": [
+        "st11-limit-1"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "NP-002",
+      "kind": "does-not-prove",
+      "text": "container/process identity",
+      "slides": [
+        11
+      ],
+      "object_ids": [
+        "st11-limit-2"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "NP-003",
+      "kind": "does-not-prove",
+      "text": "future behavior",
+      "slides": [
+        11
+      ],
+      "object_ids": [
+        "st11-limit-3"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "NP-004",
+      "kind": "does-not-prove",
+      "text": "freshness without retained challenge",
+      "slides": [
+        11
+      ],
+      "object_ids": [
+        "st11-limit-4"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "NP-005",
+      "kind": "does-not-prove",
+      "text": "PoP/Result authenticity/authorization without checks",
+      "slides": [
+        11
+      ],
+      "object_ids": [
+        "st11-limit-5"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "NP-006",
+      "kind": "does-not-prove",
+      "text": "availability and all side-channel/I/O/physical/supply-chain risks",
+      "slides": [
+        11
+      ],
+      "object_ids": [
+        "st11-limit-6"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "D-001",
+      "kind": "developer-implication",
+      "text": "Implement versioned K/D/E digest suite",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-dev-1"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "D-002",
+      "kind": "developer-implication",
+      "text": "Make context/key/Quote/Result/state first-class",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-dev-2"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "D-003",
+      "kind": "developer-implication",
+      "text": "Verify Result then PoP and same key channel",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-dev-3"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "D-004",
+      "kind": "developer-implication",
+      "text": "Consume terminal state atomically",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-dev-4"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "D-005",
+      "kind": "developer-implication",
+      "text": "Add workload Evidence for container identity",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-dev-5"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "XEC-001",
+      "kind": "executive-implication",
+      "text": "Start revocable key-release pilot",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-exec-1"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "XEC-002",
+      "kind": "executive-implication",
+      "text": "Separate appraisal/release owners",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-exec-2"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "XEC-003",
+      "kind": "executive-implication",
+      "text": "Fail closed on negative outcomes",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-exec-3"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "XEC-004",
+      "kind": "executive-implication",
+      "text": "Set numeric clock/collateral/revocation targets",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-exec-4"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "XEC-005",
+      "kind": "executive-implication",
+      "text": "Measure zero release and rollback readiness",
+      "slides": [
+        14
+      ],
+      "object_ids": [
+        "st14-exec-5"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "CV-001",
+      "kind": "caveat-or-exclusion",
+      "text": "Intel-rats is a teaching artifact, not deployable quote-verification reference code",
+      "slides": [
+        12,
+        13,
+        14
+      ],
+      "object_ids": [
+        "st12-caveat-1"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "CV-002",
+      "kind": "caveat-or-exclusion",
+      "text": "Background Check route differs from RFC and aggregate edges may disagree",
+      "slides": [
+        12,
+        13,
+        14
+      ],
+      "object_ids": [
+        "st12-caveat-2"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "CV-003",
+      "kind": "caveat-or-exclusion",
+      "text": "First-class nonce/audience/expiry/workload Evidence and concrete DCAP/deployment/policy implementation are omitted",
+      "slides": [
+        12,
+        13,
+        14
+      ],
+      "object_ids": [
+        "st12-caveat-3"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "CV-004",
+      "kind": "caveat-or-exclusion",
+      "text": "No version-specific Quote binary-field enumeration or full DCAP API instructions",
+      "slides": [
+        12,
+        13,
+        14
+      ],
+      "object_ids": [
+        "st12-caveat-4"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "CV-005",
+      "kind": "caveat-or-exclusion",
+      "text": "K/D/E and Result fields are an example profile, not a universal standard",
+      "slides": [
+        12,
+        13,
+        14
+      ],
+      "object_ids": [
+        "st12-caveat-5"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "CV-006",
+      "kind": "caveat-or-exclusion",
+      "text": "No vendor-selection or production-readiness recommendation",
+      "slides": [
+        12,
+        13,
+        14
+      ],
+      "object_ids": [
+        "st12-caveat-6"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "CV-007",
+      "kind": "caveat-or-exclusion",
+      "text": "Owners must set organization-specific numeric SLO values",
+      "slides": [
+        12,
+        13,
+        14
+      ],
+      "object_ids": [
+        "st12-caveat-7"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "CV-008",
+      "kind": "caveat-or-exclusion",
+      "text": "No claim that TDX removes every infrastructure, application, or side-channel risk",
+      "slides": [
+        12,
+        13,
+        14
+      ],
+      "object_ids": [
+        "st12-caveat-8"
+      ],
+      "coverage_role": "primary"
+    },
+    {
+      "id": "S-001",
+      "kind": "source-reference",
+      "slides": [
+        15
+      ],
+      "object_ids": [
+        "st15-source-ledger"
+      ],
+      "coverage_role": "appendix"
+    },
+    {
+      "id": "S-002",
+      "kind": "source-reference",
+      "slides": [
+        15
+      ],
+      "object_ids": [
+        "st15-source-ledger"
+      ],
+      "coverage_role": "appendix"
+    },
+    {
+      "id": "S-003",
+      "kind": "source-reference",
+      "slides": [
+        15
+      ],
+      "object_ids": [
+        "st15-source-ledger"
+      ],
+      "coverage_role": "appendix"
+    },
+    {
+      "id": "S-004",
+      "kind": "source-reference",
+      "slides": [
+        15
+      ],
+      "object_ids": [
+        "st15-source-ledger"
+      ],
+      "coverage_role": "appendix"
+    },
+    {
+      "id": "S-005",
+      "kind": "source-reference",
+      "slides": [
+        15
+      ],
+      "object_ids": [
+        "st15-source-ledger"
+      ],
+      "coverage_role": "appendix"
+    },
+    {
+      "id": "S-006",
+      "kind": "source-reference",
+      "slides": [
+        15
+      ],
+      "object_ids": [
+        "st15-source-ledger"
+      ],
+      "coverage_role": "appendix"
+    },
+    {
+      "id": "S-007",
+      "kind": "source-reference",
+      "slides": [
+        15
+      ],
+      "object_ids": [
+        "st15-source-ledger"
+      ],
+      "coverage_role": "appendix"
+    },
+    {
+      "id": "S-008",
+      "kind": "source-reference",
+      "slides": [
+        15
+      ],
+      "object_ids": [
+        "st15-source-ledger"
+      ],
+      "coverage_role": "appendix"
+    },
+    {
+      "id": "S-009",
+      "kind": "source-reference",
+      "slides": [
+        15
+      ],
+      "object_ids": [
+        "st15-source-ledger"
+      ],
+      "coverage_role": "appendix"
+    },
+    {
+      "id": "S-010",
+      "kind": "source-reference",
+      "slides": [
+        15
+      ],
+      "object_ids": [
+        "st15-source-ledger"
+      ],
+      "coverage_role": "appendix"
+    },
+    {
+      "id": "S-011",
+      "kind": "source-reference",
+      "slides": [
+        15
+      ],
+      "object_ids": [
+        "st15-source-ledger"
+      ],
+      "coverage_role": "appendix"
+    },
+    {
+      "id": "S-012",
+      "kind": "source-reference",
+      "slides": [
+        15
+      ],
+      "object_ids": [
+        "st15-source-ledger"
+      ],
+      "coverage_role": "appendix"
+    }
+  ]
+}

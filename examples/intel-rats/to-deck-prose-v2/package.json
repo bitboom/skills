@@ -1,0 +1,12 @@
+{
+  "name": "intel-rats-to-deck-prose-v2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build-prose-v2.mjs",
+    "validate": "python3 validate-prose-v2.py"
+  },
+  "dependencies": {
+    "pptxgenjs": "^4.0.1"
+  }
+}

@@ -1,0 +1,201 @@
+canonical_topic: Intel TDX Remote Attestation
+project_role: teaching_vehicle
+objective: >-
+  Intel TDX 원격 증명을 초보 개발자와 기술 임원이 설명하고 의사결정할 수 있도록,
+  adversary/trust model, distinct Intel actors, retained challenge, K/D/E digest suite,
+  protected Result, proof of possession, policy-gated release, proof limits, and Intel-rats value를 닫힌 모델로 제공한다.
+audience: [novice_developer, technical_executive]
+mode: domain_through_project
+question: Intel TDX Remote Attestation은 어떤 문제를 어떻게 해결하며, Intel-rats는 이를 이해하는 데 어떤 고유한 가치를 제공하는가?
+title: "Intel TDX 원격 증명: 승인한 VM에만 비밀을 공개하는 통제"
+point: >-
+  Intel TDX 원격 증명은 클라우드 운영자를 전적으로 믿지 않아도,
+  증거 평가 서비스가 TDX VM의 하드웨어 보고를 조직 기준으로 확인하고,
+  키 관리 서비스가 별도 공개 정책을 통과한 VM에만 비밀을 내주게 하는 절차다.
+teachback_expected:
+  novice_developer: >-
+    RP가 request ID, subject, audience를 정하고 Verifier가 nonce를 발급·보관한다. TD는 protocol-fixed
+    canonical key bytes의 K와 context digest D를 REPORTDATA에 넣어 TDREPORT를 만들고, non-enclave QGS
+    daemon이 TDQE로 운반한다. TDQE-signed Quote와 key bytes가 RP를 거쳐 Verifier에 도착하면 Verifier가
+    K, D, exact-Quote digest E를 재계산하고 signed Result에 verdict, policy version, E와 approved K를 넣는다.
+    RP는 Result와 clock, E/K, key possession을 확인한 뒤 같은 키의 channel에만 secret을 보낸다.
+  technical_executive: >-
+    Remote Attestation은 외부 인프라 workload에 자산을 공개하기 전에 hardware Evidence와 조직 정책으로
+    공개를 조건화하는 통제다. appraisal과 release에 각각 단일 책임자를 두고, 회수 가능한 한 key-release
+    pilot에서 deny-without-key, replay, revocation, key substitution, clock, collateral outage를 수치 gate로 검증한다.
+domain_core:
+  - {id: C-001, concept: "Plain-language domain definition and project verdict"}
+  - {id: C-002, concept: "Distinct actor map and four-layer decision model"}
+  - {id: C-003, concept: "Explicit adversary and trust assumptions"}
+  - {id: C-004, concept: "Closed Background Check sequence with visible allow and deny"}
+  - {id: C-005, concept: "Separate PCS-to-PCCS collateral authority and cache path"}
+  - {id: C-006, concept: "Versioned K, D, E digest suite and example minimum Result profile"}
+  - {id: C-007, concept: "Proof and non-proof boundaries"}
+project_lens:
+  - {id: C-008, concept: "Intel-rats strengths and corrections"}
+  - {id: C-009, concept: "SGX versus TDX attested scope"}
+model:
+  topology: background_check_with_signed_result_profile
+  nodes:
+    - {id: N-001, label: "Policy and reference-value owners", role: "supply appraisal and result-use policy"}
+    - {id: N-002, label: "Relying Party / KMS", role: "owns request identity, validates Result and key, enforces release"}
+    - {id: N-003, label: "Verifier", role: "issues nonce, retains one-time expected context, verifies/appraises Evidence, signs Result"}
+    - {id: N-004, label: "TD / Attester", role: "creates ephemeral key, requests TDREPORT, returns Quote/key bytes, proves possession"}
+    - {id: N-005, label: "non-enclave QGS daemon", role: "host-side orchestration and transport; cannot sign an accepted Quote"}
+    - {id: N-006, label: "TDQE enclave", role: "validates same-platform TDREPORT and signs TD Quote"}
+    - {id: N-007, label: "Intel PCS", role: "upstream publisher of signed certification, revocation, QE, and TCB collateral"}
+    - {id: N-008, label: "PCCS", role: "cache and transport for signed collateral; not the authority"}
+  edges:
+    - {id: E-001, from: N-001, to: N-003, artifact: "reference values and Evidence appraisal policy"}
+    - {id: E-002, from: N-001, to: N-002, artifact: "Result-use and release policy"}
+    - {id: E-003, from: N-002, to: N-003, artifact: "request ID, subject, audience"}
+    - {id: E-004, from: N-003, to: N-002, artifact: "nonce; Verifier retains the full one-time expected context"}
+    - {id: E-005, from: N-002, to: N-004, artifact: "nonce, request ID, subject, audience, digest suite and key-binding request"}
+    - {id: E-006, from: N-004, to: N-005, artifact: "TDREPORT containing the instantiated suite's 64-byte encoding of D"}
+    - {id: E-007, from: N-005, to: N-006, artifact: "same-platform TDREPORT plus generation input"}
+    - {id: E-008, from: N-007, to: N-008, artifact: "signed PCK Certificate, CRLs, QE Identity, and TCB Info"}
+    - {id: E-009, from: N-008, to: N-005, artifact: "cached PCK Certificate and quote configuration"}
+    - {id: E-010, from: N-006, to: N-005, artifact: "TDQE-signed TD Quote"}
+    - {id: E-011, from: N-005, to: N-004, artifact: "TD Quote returned through TD/QGL guest path"}
+    - {id: E-012, from: N-004, to: N-002, artifact: "exact TD Quote octets, canonical public-key bytes, and request context"}
+    - {id: E-013, from: N-002, to: N-003, artifact: "Evidence, canonical public-key bytes, identical request context, digest suite ID"}
+    - {id: E-014, from: N-008, to: N-003, artifact: "cached signed certificate chain, CRLs, QE Identity, and TCB Info"}
+    - {id: E-015, from: N-003, to: N-002, artifact: "Verifier-signed Result with verdict, profile/policy versions, E, and allow-only approved K"}
+    - {id: E-016, from: N-002, to: N-004, artifact: "proof-of-possession challenge for approved K"}
+    - {id: E-017, from: N-004, to: N-002, artifact: "response signed by the ephemeral private key"}
+    - {id: E-018, from: N-002, to: N-004, artifact: "secret over a channel authenticated by approved K"}
+  boundaries:
+    - {id: B-001, label: "infrastructure boundary", separates: "host operator from TD"}
+    - {id: B-002, label: "QGS-to-TDQE boundary", separates: "untrusted daemon transport from enclave signing authority"}
+    - {id: B-003, label: "PCS-to-PCCS boundary", separates: "signed authority data from cache and transport"}
+    - {id: B-004, label: "Evidence appraisal boundary", separates: "reported Evidence from accepted Evidence"}
+    - {id: B-005, label: "Result transport boundary", separates: "Verifier-signed claims from untrusted delivery"}
+    - {id: B-006, label: "Result-use boundary", separates: "authenticated Result from asset authorization"}
+    - {id: B-007, label: "TD-workload boundary", separates: "whole-VM Evidence from container identity"}
+  threat_model:
+    untrusted: [host, hypervisor, network, non_enclave_qgs_daemon, pccs_cache, attester_supplied_values_before_appraisal]
+    attacker_can: [drop, delay, replay, reorder, substitute, deny_service]
+    trusted_assumptions:
+      - CPU, TDX Module, TDQE and selected attestation-key/PCK trust chain
+      - PCS signatures and accepted Intel trust anchors
+      - Verifier implementation, reference values, appraisal policy, signing-key custody
+      - Relying Party Result trust store, release policy, trustworthy time and maximum clock skew
+      - selected cryptographic algorithms and implementations
+      - approved ephemeral private key remains inside the intended TD boundary
+    not_guaranteed: [availability, code_correctness, future_behavior, all_side_channels, protected_external_io]
+  digest_suite:
+    status: "symbolic invariants only; not directly implementable until a deployment profile instantiates every byte-level choice"
+    suite_id: deployment_must_assign_a_concrete_id
+    required_instantiation:
+      - hash algorithm and output length
+      - allowed key algorithms and canonical public-key byte encoding
+      - canonical field encoding, field order, and length delimiting
+      - distinct domain tags and profile version
+      - exact mapping of D into the fixed 64-byte REPORTDATA field
+    invariants:
+      - hash algorithm, key algorithm, canonical key encoding, field order, length delimiting, and domain tags are version-fixed
+      - K equals Hash of key domain tag, key algorithm, and canonical public-key bytes
+      - D equals Hash of context domain tag and canonical nonce, request ID, subject, audience, and K; D is stored in REPORTDATA
+      - E equals Hash of Evidence domain tag and the exact TD Quote octets transported on E-012 and E-013
+  context_dependencies:
+    - {id: X-001, value: nonce, producer: N-003, requirements: [CSPRNG, policy_minimum_entropy], retained_by: N-003, transported_by: N-002, bound_at: N-004, compared_by: N-003, consumed_by: N-003, terminal_events: [allow, deny, expiry]}
+    - {id: X-002, value: request_id_subject_audience, producer: N-002, retained_by: [N-002, N-003], bound_at: N-004, compared_by: [N-003, N-002]}
+    - {id: X-003, value: canonical_public_key_bytes_and_K, producer: N-004, transport_edges: [E-012, E-013], bound_in_D_at: N-004, recomputed_by: N-003, approved_in_result_edge: E-015, possession_edges: [E-016, E-017], channel_edge: E-018}
+    - {id: X-004, value: exact_quote_octets_and_E, producer: N-006, transport_edges: [E-010, E-011, E-012, E-013], recomputed_by: [N-003, N-002], approved_in_result_edge: E-015}
+  request_state_machine:
+    initial: issued
+    terminal: [allow_consumed, deny_consumed, expired]
+    retry_rule: "close the old record and issue a fresh nonce/request attempt"
+    invariant: "one terminal appraisal per request record"
+    ordering: "an atomic issued-to-terminal transition must succeed before emitting any terminal Result"
+    relying_party_replay_rule: "after successful Result and PoP checks, atomically transition unused to release_committed before secret delivery; only the winning transition may release"
+  result_profile:
+    status: "example minimum profile, not a universal RFC 9334 wire format"
+    protection: "Verifier signature checked against an authorized Verifier key"
+    common_claims: [profile_version, digest_suite_id, verdict, issuer, subject, audience, request_id, issued_at, expiry, appraisal_policy_id, appraisal_policy_version, evidence_digest_E]
+    allow_only_claims: [approved_key_digest_K]
+    consumer_checks: [signature, authorized_issuer, verdict, accepted_profile_and_policy_versions, subject, audience, request_id, trustworthy_time_and_skew, evidence_digest_E, allow_only_approved_key_digest_K]
+essentials:
+  - {baseline_id: DB-001, final_ids: [C-001, C-002, C-003]}
+  - {baseline_id: DB-002, final_ids: [C-004, C-006]}
+  - {baseline_id: DB-003, final_ids: [C-002, C-004]}
+  - {baseline_id: DB-004, final_ids: [C-005]}
+  - {baseline_id: DB-005, final_ids: [C-002, C-004, C-006, C-007]}
+  - {baseline_id: DB-006, final_ids: [C-007, C-009]}
+  - {baseline_id: DB-007, final_ids: [C-004, C-006]}
+  - {baseline_id: DB-008, final_ids: [C-001, C-004, C-010]}
+proves:
+  - Quote integrity and connection to an accepted quoting credential under the selected trust model
+  - Reported TD measurements, attributes, and TCB-related state for appraisal
+  - Equality between REPORTDATA D and a digest recomputed from retained expected context and approved canonical key bytes
+  - Result linkage to exact Quote octets E, appraisal policy version, and allow-only approved key digest K
+  - Comparability of reported measurements with approved reference values
+does_not_prove:
+  - Code correctness or absence of vulnerabilities
+  - Automatic identity of a container or process inside the TD
+  - Safe future behavior after attestation
+  - Freshness without retained and terminally consumed challenge state or an equivalent mechanism
+  - Private-key possession, Result authenticity, or authorization without their separate checks
+  - Availability or elimination of all side-channel, I/O, physical, and supply-chain risks
+implications:
+  developer:
+    - Implement one versioned K/D/E digest suite over canonical bytes and exact Quote octets.
+    - Make request context, key bytes, Quote bytes, Result claims, and challenge state first-class artifacts.
+    - Verify Result signature/profile/policy/time/E/K, then proof of possession and the same key-bound channel.
+    - Consume state atomically on allow, deny, or expiry; retries receive a fresh nonce.
+    - Add independent workload Evidence when protected identity is a container rather than the whole TD.
+  technical_executive:
+    - Start with one high-value, revocable key-release pilot.
+    - Assign separate single-accountable owners for Evidence appraisal and asset release policy.
+    - Default to deny-without-key during invalid, stale, revoked, misdirected, substituted-key, or unavailable Evidence.
+    - Set numeric clock-skew, collateral-outage, revocation-to-deny, and re-attestation targets before launch.
+    - Measure zero release on negative tests, one terminal decision per challenge, policy auditability, and rollback readiness.
+caveats:
+  - Intel-rats is a visual teaching artifact, not deployable quote-verification reference code.
+  - Its detailed Background Check route differs from RFC 9334 and some aggregate edges disagree with detailed sequences.
+  - It omits first-class nonce, audience, expiry, and workload Evidence plus concrete Quote structures, DCAP calls, deployment code, policy language, and a step-by-step SGX flow.
+exclusions:
+  - Version-specific Intel Quote binary-field enumeration and full DCAP API instructions
+  - A universal Result token standard; K/D/E and Result fields are an explicit example profile
+  - Vendor selection or production-readiness recommendation
+  - Organization-specific numeric SLO values, which owners must set before pilot launch
+  - A claim that TDX removes every infrastructure, application, or side-channel risk
+glossary:
+  TD: Trust Domain, a TDX-protected virtual machine
+  TDREPORT: Same-platform local report produced by the TDX Module at the TD's request
+  TD Quote: TDQE-signed Evidence designed for remote verification
+  QGS daemon: Non-enclave host communication/orchestration layer that transports reports and Quotes
+  TDQE: Quoting Enclave that checks a same-platform TDREPORT and signs the TD Quote
+  Verifier: Component that retains nonce context, verifies/appraises Evidence, and signs the Result
+  Attestation Result: Verifier-signed decision input bound to request, policy, Evidence E, validity window, and allow-only key K
+  Relying Party: Service that validates the Result and enforces the final action
+  PCS: Intel upstream source of signed certification, revocation, QE, and TCB collateral
+  PCCS: Cache and transport for signed collateral, not the authority
+  REPORTDATA: 64 caller-supplied bytes integrity-bound into the report; this profile stores D
+  K: Digest of protocol-canonical public-key bytes
+  D: Digest of retained request context and K, stored in REPORTDATA
+  E: Digest of the exact transported TD Quote octets
+source_map:
+  C-001: [S-002, S-003, S-007]
+  C-002: [S-002, S-003, S-005, S-007, S-009]
+  C-003: [S-002, S-003, S-005, S-009]
+  C-004: [S-002, S-003, S-004, S-005, S-006, S-008, S-010, S-011]
+  C-005: [S-003, S-005]
+  C-006: [S-002, S-004, S-005, S-011]
+  C-007: [S-002, S-003, S-009]
+  C-008: [S-001, S-002, S-010]
+  C-009: [S-001, S-002, S-004, S-010, S-012]
+  C-010: [S-002, S-003, S-007, S-010, S-011]
+visual_priority:
+  dominant_visual: "plain roles → separate QGS daemon and TDQE → K/D/E verification → signed Result → PoP → allow/deny action"
+  must_show:
+    - QGS daemon and TDQE are separate actors with an explicit trust boundary
+    - PCS authority and PCCS cache are separate in a second collateral diagram
+    - Verifier retains and terminally consumes challenge state
+    - Canonical key bytes travel to RP and Verifier; K is bound into D in REPORTDATA
+    - E covers exact Quote octets; Result names verdict, policy version, E, and allow-only approved K
+    - RP verifies Result/time/E/K, proves possession, and releases only through the same key-bound channel
+    - Deny, expiry, replay, invalid, and terminal error release no key
+  secondary_visuals:
+    - proof versus non-proof comparison
+    - accountable appraisal and result-use owners with numeric pilot gates

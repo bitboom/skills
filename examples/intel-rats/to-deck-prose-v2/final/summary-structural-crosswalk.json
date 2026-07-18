@@ -1,0 +1,31 @@
+{
+  "schema_version": "to-deck.summary-structural-crosswalk.v2",
+  "point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "summary_deck": "final/summary/intel-tdx-attestation-prose-summary.pptx",
+  "structural_deck": "final/structural/intel-tdx-attestation-prose-structural.pptx",
+  "summary_must_see_ids": [
+    "C-001",
+    "C-002",
+    "C-004",
+    "C-006",
+    "C-007",
+    "E-013",
+    "E-015",
+    "E-018",
+    "B-006"
+  ],
+  "deliberate_summary_omissions": [
+    "full threat model",
+    "all collateral detail",
+    "complete K/D/E profile",
+    "all caveats and pilot ownership"
+  ],
+  "semantic_invariants": [
+    "QGS transport is distinct from TDQE signing",
+    "PCS authority is distinct from PCCS cache",
+    "Verifier appraises Evidence while RP/KMS owns release",
+    "K/D/E bind key, context, and exact Quote independently",
+    "Result/time/E/K/PoP/one-time state are required before release",
+    "deny/replay/expiry/invalid collateral/failed PoP result in NO KEY"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "to-deck.prose-v2-build.v1",
+  "canonical_point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "point_inputs": [
+    "input/point.md",
+    "input/point.yaml",
+    "input/point.sha256",
+    "input/point-gate.json"
+  ],
+  "projection_used": false,
+  "source_script": "build-prose-v2.mjs",
+  "summary": "final/summary/intel-tdx-attestation-prose-summary.pptx",
+  "structural": "final/structural/intel-tdx-attestation-prose-structural.pptx",
+  "summary_slide_count": 2,
+  "structural_slide_count": 15
+}

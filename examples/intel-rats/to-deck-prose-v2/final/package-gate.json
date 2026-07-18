@@ -1,0 +1,6 @@
+{
+  "gate": "package-render-manifest",
+  "archive_sha256": "188a8d5cb26c64616c56e2c8daacb03b0a8f2cd1436d3d30cd0e4d9845a6bc9d",
+  "passed": true,
+  "failures": []
+}

@@ -19,6 +19,8 @@ Component scores are pre-build evidence only. They never replace the following s
 ## Hard gates
 
 - Visual query, baseline, candidates, selection, reviews, deck, and render manifest have matching hashes.
+- Canonical `point.md`, `point.yaml`, `point.sha256`, and `point-gate.json` agree. Any build projection declares the same Point hash and a complete material-ID mapping; a structural deck fails if a projection silently omits a canonical claim, node, edge, boundary, context dependency, state, qualifier, proof/non-proof, caveat, or implication.
+- Every non-appendix slide has an assertion-led title, reader-question subtitle, and a body sentence that is readable at the declared font floor. For a security boundary, the sentence names actor, concrete artifact, validation, separate policy owner, and action/failure. Labels, arrows, object IDs, and footers cannot substitute.
 - Two independent, materially different storyboards were compared; every visual-baseline must-see item maps to the selected design.
 - A structural Point has one dominant meaning-bearing diagram occupying at least 55% of the core content region.
 - The diagram exposes the causal path from input/Evidence through evaluation and authenticated Result to final policy action. Distinct trust roles are not collapsed.

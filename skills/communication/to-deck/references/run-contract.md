@@ -5,7 +5,8 @@ Never overwrite a round. Use two-digit versions beginning with v01.
     <run>/
     ├── 00-deck-brief.yaml
     ├── 00-brief-decision.md
-    ├── input/{point.md,point.yaml,point.sha256,point-gate.json}
+    ├── input/{point.md,point.yaml,point.sha256,point-gate.json,projection-manifest.json?}
+    ├── prose-trace.json                       # required for structural/paired
     ├── 01-visual-query.md
     ├── 02-visual-baseline.json
     ├── 03-constraint-map.json

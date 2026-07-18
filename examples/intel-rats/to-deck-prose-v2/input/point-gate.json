@@ -1,0 +1,11 @@
+{
+  "gate": "point",
+  "round": 4,
+  "passed": true,
+  "point_score": 92.0,
+  "synthesis_score": 100.0,
+  "executive_score": 100.0,
+  "artifact_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "model_sha256": "eb2abb6b75cff4db759743b0f916274d2e9830edf1e64130686324b2dccc9190",
+  "failures": []
+}

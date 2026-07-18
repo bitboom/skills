@@ -1,0 +1,16 @@
+{
+  "schema_version": "to-deck.visual-model.v2",
+  "canonical_point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "deck": "final/summary/intel-tdx-attestation-prose-summary.pptx",
+  "must_see_ids": [
+    "C-001",
+    "C-002",
+    "C-004",
+    "C-006",
+    "C-007",
+    "E-013",
+    "E-015",
+    "E-018",
+    "B-006"
+  ]
+}
