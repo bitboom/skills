@@ -42,3 +42,5 @@ Public workflow references:
 - Verification Before Completion: https://github.com/obra/superpowers/tree/main/skills/verification-before-completion
 - PPTAgent/DeepPresenter MIT repository: https://github.com/icip-cas/PPTAgent
 - Anthropic public PPTX workflow is a precedent only; its text and code are proprietary and must not be copied: https://github.com/anthropics/skills/tree/main/skills/pptx
+- Archify (`tt-a1i/archify`) provides typed, renderer-validated architecture/workflow/sequence/data-flow/lifecycle prototypes; pin revision `ed0efcc763d358b78df845182b5ed24a9d165a1c`, preserve its IR and outputs as review evidence, and do not treat it as a semantic or PowerPoint-editability gate: https://github.com/tt-a1i/archify
+- Anthropic `frontend-design` is a visual-direction and screenshot-critique reference; pin revision `fa0fa64bdc967915dc8399e803be67759e1e62b8`, and retain To Deck's Point-bound semantic, accessibility, and cold-read gates: https://github.com/anthropics/skills/tree/main/skills/frontend-design

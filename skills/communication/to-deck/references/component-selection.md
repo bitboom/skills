@@ -56,6 +56,22 @@ Each branch also records critical relationship IDs, critical boundary IDs, expli
 
 Also record `required_causal_path` as exactly four ordered stages—`evidence`, `evaluation`, `authenticated_result`, and `policy_action`—with Claim, model, and baseline IDs for each stage. The ensemble and final visual-object map must cover every one of those IDs; labels alone do not close the path.
 
+## Optional renderer-backed technical-diagram candidate
+
+Archify (`tt-a1i/archify`, pin the repository revision in the run) is an optional implementation aid, not a visual architect or semantic reviewer. Use it only after a blind branch has selected a visual grammar and only when that grammar matches one of its typed modes:
+
+| Selected visual job | Allowed Archify mode | Required restraint |
+|---|---|---|
+| component/boundary relationship | `architecture` | ≤12 core components; one primary path; boundaries explicit |
+| approval, policy action, or runbook | `workflow` | main path plus short secondary branch only |
+| call/return or artifact exchange | `sequence` | one logical actor per lifeline; messages are ordered and labeled |
+| artifact lineage or sensitivity movement | `dataflow` | every flow label names its artifact; classifications are non-color cues |
+| retries, waits, or terminal state | `lifecycle` | normal, exception, and terminal states remain distinct |
+
+A candidate using Archify must record its `archify_revision`, diagram type, typed JSON IR hash, validator/check output, rendered HTML hash, exported SVG hash, and the exact Point/baseline/component IDs that each node, edge, lane, boundary, or state represents. Its HTML, PNG, or WebP is review evidence only. It cannot be embedded as a raster final slide, it cannot replace editable PowerPoint objects, and it cannot satisfy the final visual-object/connector trace merely by containing matching text.
+
+Do not let a renderer select the grammar, collapse a required distinction through semantic color/type, or convert a custom decision/proof model into an unsupported generic flow. The A/B branches still need materially different visual grammars; two Archify themes or export formats are not distinct candidates. Use the renderer's layout diagnostics to fix overlap and routing, then run the existing component, cold-read, render, and slide gates unchanged.
+
 ## Individual component scoring
 
 Normalize each anchored 1–5 score to 100 with these weights:
