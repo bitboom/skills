@@ -1,0 +1,2 @@
+edc25f4c76df1fc5392485ee0db3118f355b159bf7e5c620c6e5c3299202fe0e  final/intel-tdx-attestation-v2.pptx
+d29c078f407118ee935aeda22ece63d54af3d1b3af0722821eae4bb4a0c24103  final/intel-tdx-attestation-v2-review-trail.zip

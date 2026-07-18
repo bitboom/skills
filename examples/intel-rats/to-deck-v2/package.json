@@ -1,0 +1,11 @@
+{
+  "name": "intel-rats-to-deck-v2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build-deck.mjs"
+  },
+  "dependencies": {
+    "pptxgenjs": "4.0.1"
+  }
+}

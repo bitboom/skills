@@ -1,0 +1,61 @@
+[
+  {
+    "evidence_status": "source-confirmed",
+    "id": "C-001",
+    "proof_limits": [
+      "유효한 Quote 자체가 자동 key release 권한은 아니다."
+    ],
+    "qualifiers": [
+      "선택한 trust anchor와 조직 policy가 유효하다는 가정 아래"
+    ],
+    "source_refs": [
+      "S-002",
+      "S-003"
+    ],
+    "text": "Intel TDX 원격 증명은 하드웨어 Evidence 평가와 별도의 key-release 정책을 연결하는 통제다."
+  },
+  {
+    "evidence_status": "source-confirmed",
+    "id": "C-004",
+    "proof_limits": [
+      "Result 검증은 Result-use policy와 one-time release state를 대체하지 않는다."
+    ],
+    "qualifiers": [
+      "K/D/E는 이 Point의 symbolic deployment profile이다."
+    ],
+    "source_refs": [
+      "S-002",
+      "S-003"
+    ],
+    "text": "Verifier는 Quote와 collateral을 평가해 signed Result를 만들고, RP/KMS는 Result·time·E/K·key possession을 별도로 확인한다."
+  },
+  {
+    "evidence_status": "source-confirmed",
+    "id": "C-005",
+    "proof_limits": [
+      "PCCS availability는 attestation validity를 보장하지 않는다."
+    ],
+    "qualifiers": [
+      "collateral outage와 revocation은 별도 운영 policy가 필요하다."
+    ],
+    "source_refs": [
+      "S-003"
+    ],
+    "text": "PCS는 signed collateral authority이고 PCCS는 cache/transport이므로, Verifier는 PCCS가 아니라 받은 bytes의 signature·chain·status·freshness를 검증한다."
+  },
+  {
+    "evidence_status": "source-confirmed",
+    "id": "C-007",
+    "proof_limits": [
+      "workload identity와 runtime behavior에는 별도 Evidence/control이 필요하다."
+    ],
+    "qualifiers": [
+      "선택한 attestation trust model과 appraisal policy 아래"
+    ],
+    "source_refs": [
+      "S-002",
+      "S-003"
+    ],
+    "text": "Quote는 보고된 TD state와 bound context를 appraisal에 제공하지만 code correctness, container identity, future safety, availability를 증명하지 않는다."
+  }
+]

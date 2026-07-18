@@ -38,6 +38,11 @@ Never overwrite a round. Use two-digit versions beginning with v01.
     │   ├── v01-gate.json
     │   └── v01-decision.md
     ├── final/{final-deck.pptx,final-deck.sha256,final-report.md}
+    ├── deliveries/                         # required for delivery_profile: paired
+    │   ├── summary/{final-deck.pptx,visual-model.json,render-manifest.json,final-report.md}
+    │   ├── structural/{final-deck.pptx,visual-model.json,render-manifest.json,final-report.md}
+    │   ├── structural-coverage-map.json
+    │   └── summary-structural-crosswalk.json
     ├── manifest.json
     └── review-trail.zip
 

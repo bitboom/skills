@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "name": "site-desktop",
+      "url": "/",
+      "viewport": {
+        "width": 1440,
+        "height": 1050
+      },
+      "screenshot": "verification/screenshots/site-desktop.png",
+      "failures": []
+    },
+    {
+      "name": "site-mechanism",
+      "url": "/mechanism/",
+      "viewport": {
+        "width": 1440,
+        "height": 1050
+      },
+      "screenshot": "verification/screenshots/site-mechanism.png",
+      "failures": []
+    },
+    {
+      "name": "site-mobile",
+      "url": "/",
+      "viewport": {
+        "width": 390,
+        "height": 664
+      },
+      "screenshot": "verification/screenshots/site-mobile.png",
+      "failures": []
+    }
+  ]
+}

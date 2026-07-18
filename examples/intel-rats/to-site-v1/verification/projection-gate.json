@@ -1,0 +1,14 @@
+{
+  "claim_ids": [
+    "C-001",
+    "C-004",
+    "C-005",
+    "C-007"
+  ],
+  "failures": [],
+  "passed": true,
+  "source_ids": [
+    "S-002",
+    "S-003"
+  ]
+}

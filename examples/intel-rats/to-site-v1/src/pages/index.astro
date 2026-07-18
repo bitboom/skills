@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro';
+import site from '../data/site-content.json';
+
+const mainClaim = site.claims.find((claim) => claim.id === 'C-001');
+const mechanismClaim = site.claims.find((claim) => claim.id === 'C-004');
+---
+<Base title="Intel TDX 원격 증명 — 결정 모델" description={site.thesis}>
+  <section class="hero" aria-labelledby="page-title">
+    <span class="kicker">Evidence → appraisal → policy action</span>
+    <h1 id="page-title">검증된 Quote와<br />key release는 같은 결정이 아니다.</h1>
+    <p>{site.thesis}</p>
+  </section>
+
+  <section aria-labelledby="decision-heading">
+    <div class="section-heading">
+      <h2 id="decision-heading">하나의 검증 결과, 두 개의 gate</h2>
+      <p>실행 sequence보다 먼저, 책임과 policy boundary를 읽는다. 각 색상은 text label로 다시 설명된다.</p>
+    </div>
+    <div class="decision-rail" data-model-node-id="N-004">
+      <article class="decision-card" data-claim-id="C-001">
+        <small>01 / EVIDENCE</small>
+        <strong>TD Quote</strong>
+        <p>canonical public-key bytes와 bound request context를 포함한 attestation Evidence.</p>
+      </article>
+      <span class="rail-arrow" aria-hidden="true"></span>
+      <article class="decision-card" data-model-node-id="N-003">
+        <small>02 / APPRAISAL</small>
+        <strong>Verifier</strong>
+        <p>Quote·collateral을 평가하고 K/D/E를 비교해 signed Result를 만든다.</p>
+      </article>
+      <span class="rail-arrow" aria-hidden="true"></span>
+      <article class="decision-card policy" data-model-node-id="N-002">
+        <small>03 / RELEASE POLICY</small>
+        <strong>RP / KMS</strong>
+        <p>Result·time·E/K·key possession을 확인한 뒤 별도 policy를 적용한다.</p>
+      </article>
+      <div class="outcomes" aria-label="release policy outcome">
+        <div class="outcome allow">ALLOW<small>one-time secret</small></div>
+        <div class="outcome deny">NO KEY<small>deny · replay · expiry</small></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="callout-grid">
+    <aside class="callout">
+      <h3>이 경로가 보여 주는 것</h3>
+      <p>reported TD state와 retained context/key binding을 조직의 appraisal policy로 평가할 수 있다.</p>
+    </aside>
+    <aside class="callout limit">
+      <h3>이 경로만으로는 보여 주지 않는 것</h3>
+      <p>code correctness, container identity, future safety, availability는 별도 Evidence와 control이 필요하다.</p>
+    </aside>
+  </div>
+
+  <section aria-labelledby="claim-heading">
+    <div class="section-heading">
+      <h2 id="claim-heading">읽기 전에 잃지 않아야 할 주장</h2>
+      <p>각 claim은 public source, qualifier, proof limit을 함께 유지한다.</p>
+    </div>
+    <div class="claim-grid">
+      {[mainClaim, mechanismClaim].filter(Boolean).map((claim) => (
+        <article class="claim" data-claim-id={claim.id}>
+          <span class="claim-code">{claim.id} · {claim.evidence_status}</span>
+          <h3>{claim.text}</h3>
+          <span class="meta-label">QUALIFIER</span>
+          <p>{claim.qualifiers.join(' ')}</p>
+          <span class="meta-label">PROOF LIMIT</span>
+          <p>{claim.proof_limits.join(' ')}</p>
+          <div class="pills" aria-label={`${claim.id} source references`}>
+            {claim.source_refs.map((sourceId) => <span class="pill" data-source-id={sourceId}>{sourceId}</span>)}
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+</Base>

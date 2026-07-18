@@ -1,0 +1,103 @@
+{
+  "boundaries": [
+    {
+      "id": "B-004",
+      "label": "Evidence appraisal boundary",
+      "source_refs": [
+        "S-002"
+      ]
+    },
+    {
+      "id": "B-006",
+      "label": "Result-use boundary",
+      "source_refs": [
+        "S-002"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "N-002",
+      "id": "E-013",
+      "label": "Evidence + key + request context",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "to": "N-003"
+    },
+    {
+      "from": "N-008",
+      "id": "E-014",
+      "label": "signed collateral",
+      "source_refs": [
+        "S-003"
+      ],
+      "to": "N-003"
+    },
+    {
+      "from": "N-003",
+      "id": "E-015",
+      "label": "signed Result",
+      "source_refs": [
+        "S-002"
+      ],
+      "to": "N-002"
+    },
+    {
+      "from": "N-002",
+      "id": "E-018",
+      "label": "same key-bound secret channel",
+      "source_refs": [
+        "S-002"
+      ],
+      "to": "N-004"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "N-002",
+      "label": "RP / KMS",
+      "source_refs": [
+        "S-002"
+      ]
+    },
+    {
+      "id": "N-003",
+      "label": "Verifier",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ]
+    },
+    {
+      "id": "N-004",
+      "label": "TD / Attester",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ]
+    },
+    {
+      "id": "N-005",
+      "label": "QGS daemon",
+      "source_refs": [
+        "S-003"
+      ]
+    },
+    {
+      "id": "N-006",
+      "label": "TDQE",
+      "source_refs": [
+        "S-003"
+      ]
+    },
+    {
+      "id": "N-008",
+      "label": "PCCS cache",
+      "source_refs": [
+        "S-003"
+      ]
+    }
+  ]
+}

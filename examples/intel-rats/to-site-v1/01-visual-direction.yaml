@@ -1,0 +1,23 @@
+subject: Intel TDX remote attestation decision system
+audience: security-platform engineer and technical decision maker
+page_job: distinguish Evidence appraisal from RP/KMS asset-release authorization
+layout_thesis: one decisive horizontal chain on the landing page; one chronological protocol on the mechanism page; sources and caveats on a quiet evidence page
+palette:
+  - {name: ink, hex: "#071827"}
+  - {name: evidence, hex: "#0E7490"}
+  - {name: decision, hex: "#175CD3"}
+  - {name: allow, hex: "#15803D"}
+  - {name: no_key, hex: "#B42318"}
+type_roles:
+  - {role: display, family: "Pretendard / Apple SD Gothic Neo"}
+  - {role: body, family: "Pretendard / Apple SD Gothic Neo"}
+  - {role: utility, family: "SF Mono / Menlo"}
+signature_element: evidence-to-decision rail whose two boundaries are visible before the supporting detail
+structural_semantics: numbered rails show chronology; colored connectors identify Evidence, Result, and policy outcome; text repeats every color meaning
+responsive_policy: mobile converts the horizontal decision rail into a numbered vertical path and keeps mechanism steps as an ordered list
+motion_policy: none; the reader is a technical reference, not a demo
+rejected_generic_defaults:
+  - equal-weight dashboard cards
+  - decorative security-lock imagery
+  - color-only trust states
+frontend_design_revision: fa0fa64bdc967915dc8399e803be67759e1e62b8

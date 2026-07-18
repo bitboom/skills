@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "type": "sequence",
+  "input": "/Users/sangwan/skills/examples/intel-rats/to-site-v1/archify/intel-tdx.sequence.json",
+  "checks": [
+    {
+      "name": "single_svg",
+      "ok": true,
+      "details": [
+        "found 1 <svg> block(s)"
+      ]
+    },
+    {
+      "name": "finite_svg",
+      "ok": true,
+      "details": []
+    },
+    {
+      "name": "orthogonal_arrows",
+      "ok": true,
+      "details": []
+    },
+    {
+      "name": "legend_clearance",
+      "ok": true,
+      "details": []
+    }
+  ]
+}

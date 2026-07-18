@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Signed Result 생성 경로",
+    "subtitle": "요청 바인딩 → Quote → 평가 → 정책 입력",
+    "output": "intel-tdx-sequence.html"
+  },
+  "participants": [
+    {"id": "rp", "type": "security", "label": "RP / KMS", "sublabel": "release owner"},
+    {"id": "verifier", "type": "backend", "label": "Verifier", "sublabel": "appraisal owner"},
+    {"id": "td", "type": "frontend", "label": "TD", "sublabel": "attester"},
+    {"id": "qgs", "type": "backend", "label": "QGS", "sublabel": "transport"},
+    {"id": "tdqe", "type": "security", "label": "TDQE", "sublabel": "Quote signer"}
+  ],
+  "segments": [
+    {"from": 160, "to": 310, "label": "01 / BIND"},
+    {"from": 330, "to": 510, "label": "02 / QUOTE"},
+    {"from": 540, "to": 700, "label": "03 / APPRAISE"}
+  ],
+  "messages": [
+    {"from": "rp", "to": "verifier", "y": 205, "label": "request + audience", "variant": "emphasis"},
+    {"from": "verifier", "to": "td", "y": 275, "label": "nonce + context", "variant": "return"},
+    {"from": "td", "to": "qgs", "y": 370, "label": "TDREPORT (D/K)", "variant": "emphasis"},
+    {"from": "qgs", "to": "tdqe", "y": 425, "label": "same-platform report", "variant": "emphasis"},
+    {"from": "tdqe", "to": "verifier", "y": 495, "label": "signed Quote", "variant": "return"},
+    {"from": "verifier", "to": "rp", "y": 610, "label": "signed Result (E/K)", "variant": "return"}
+  ],
+  "activations": [
+    {"participant": "verifier", "from": 190, "to": 650, "type": "backend"}
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Collateral side input",
+      "items": [
+        "PCCS supplies cached signed bytes",
+        "Verifier validates chain, status, and freshness",
+        "The cache is not the attestation authority"
+      ]
+    }
+  ]
+}

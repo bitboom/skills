@@ -1,0 +1,55 @@
+---
+import Base from '../../layouts/Base.astro';
+import site from '../../data/site-content.json';
+
+const sequence = [
+  ['01', 'RP/KMS → Verifier', 'request ID, subject, audience를 보낸다.'],
+  ['02', 'Verifier → TD', 'Verifier가 보관할 nonce와 bound context가 TD에 전달된다.'],
+  ['03', 'TD → QGS → TDQE', 'TDREPORT의 D/K binding을 QGS가 transport하고 TDQE가 Quote를 서명한다.'],
+  ['04', 'TDQE/QGS → Verifier', 'exact Quote와 canonical key bytes를 appraisal 입력으로 전달한다.'],
+  ['05', 'PCCS → Verifier', 'PCCS의 cached signed collateral을 chain·status·freshness로 검증한다.'],
+  ['06', 'Verifier → RP/KMS', 'verdict, policy version, E, allow-only K를 포함한 signed Result를 전달한다.'],
+  ['07', 'RP/KMS ↔ TD', 'PoP와 atomic release state를 확인한 allow request만 same key-bound channel로 secret을 받는다.'],
+];
+---
+<Base title="Intel TDX 원격 증명 — signed Result 생성 경로" description="The protocol sequence that produces a signed Result.">
+  <section class="sequence-intro" aria-labelledby="mechanism-title">
+    <div class="sequence-note">
+      <span class="kicker">Mechanism / time order</span>
+      <h1 id="mechanism-title">signed Result가 만들어지는 경로</h1>
+      <p><strong>QGS는 transport</strong>이고 <strong>TDQE는 Quote signer</strong>다. collateral은 request sequence와 별도 side input으로 검증한다.</p>
+      <p>아래 SVG는 pinned Archify sequence IR에서 생성한 renderer artifact이며, 바로 아래의 ordered list가 동등한 text path다.</p>
+    </div>
+    <figure class="archify-figure" data-model-edge-id="E-013">
+      <img src="/archify/intel-tdx-sequence.svg" alt="RP/KMS, Verifier, TD, QGS, TDQE 사이의 request, nonce, TDREPORT, signed Quote, signed Result sequence. PCCS collateral은 Verifier의 별도 입력이다." />
+      <figcaption>Archify renderer prototype · static SVG only · semantic mapping and text equivalent remain site-owned.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="steps-heading">
+    <div class="section-heading">
+      <h2 id="steps-heading">동등한 text sequence</h2>
+      <p>시각 관계를 축소하거나 assistive technology를 사용할 때도 동일한 message/owner 구조를 읽을 수 있다.</p>
+    </div>
+    <ol class="protocol-list">
+      {sequence.map(([number, actors, detail]) => (
+        <li data-claim-id="C-004">
+          <span class="step-num">{number}</span>
+          <strong>{actors}</strong>
+          <span>{detail}</span>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="callout-grid" aria-label="protocol limits">
+    <aside class="callout">
+      <h3>Result transport boundary</h3>
+      <p>Verifier-signed Result는 untrusted delivery와 분리된 claim set이다. RP/KMS가 Result 소비 책임을 가진다.</p>
+    </aside>
+    <aside class="callout limit">
+      <h3>Release is fail-closed</h3>
+      <p>deny, replay, expiry, invalid Evidence 또는 terminal error는 secret 없이 종료한다.</p>
+    </aside>
+  </section>
+</Base>

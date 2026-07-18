@@ -1,0 +1,14 @@
+[
+  {
+    "canonical_url": "https://www.rfc-editor.org/rfc/rfc9334",
+    "id": "S-002",
+    "locator": "Sections 2–4: roles, Evidence, appraisal and relying-party results",
+    "title": "RFC 9334 — Remote ATtestation procedureS (RATS) Architecture"
+  },
+  {
+    "canonical_url": "https://github.com/intel/SGXDataCenterAttestationPrimitives",
+    "id": "S-003",
+    "locator": "QuoteGeneration and QuoteVerification implementation and collateral workflow",
+    "title": "Intel SGX Data Center Attestation Primitives"
+  }
+]

@@ -1,0 +1,57 @@
+---
+import Base from '../../layouts/Base.astro';
+import site from '../../data/site-content.json';
+
+const sourceById = Object.fromEntries(site.sources.map((source) => [source.id, source]));
+---
+<Base title="Intel TDX 원격 증명 — 근거와 한계" description="Claim, source, qualifier, and proof-limit ledger.">
+  <section class="hero" aria-labelledby="evidence-title">
+    <span class="kicker">Evidence ledger / caveats</span>
+    <h1 id="evidence-title">주장은 근거를 숨기지 않고, 한계도 빼지 않는다.</h1>
+    <p>각 entry는 Point claim ID, evidence status, public source locator, qualifier, proof limit을 연결한다.</p>
+  </section>
+
+  <section aria-labelledby="ledger-heading">
+    <div class="section-heading">
+      <h2 id="ledger-heading">Claim ↔ source ledger</h2>
+      <p>Canonical URL은 public reader surface에만 보이며, local corpus path나 private excerpt는 build output에 포함하지 않는다.</p>
+    </div>
+    <table class="evidence-table">
+      <thead>
+        <tr><th>Claim</th><th>Statement + qualifier</th><th>Proof limit</th><th>Evidence</th></tr>
+      </thead>
+      <tbody>
+        {site.claims.map((claim) => (
+          <tr data-claim-id={claim.id}>
+            <th><span class="claim-code">{claim.id}</span><br />{claim.evidence_status}</th>
+            <td>{claim.text}<br /><br /><strong>Qualifier.</strong> {claim.qualifiers.join(' ')}</td>
+            <td>{claim.proof_limits.join(' ')}</td>
+            <td>
+              {claim.source_refs.map((sourceId) => {
+                const source = sourceById[sourceId];
+                return <p data-source-id={source.id}><a href={source.canonical_url}>{source.id} · {source.title}</a><br /><small>{source.locator}</small></p>;
+              })}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </section>
+
+  <section aria-labelledby="limits-heading">
+    <div class="section-heading">
+      <h2 id="limits-heading">명시적 non-proof</h2>
+      <p>이 목록은 empty state가 아니라 security boundary다.</p>
+    </div>
+    <div class="callout-grid">
+      <aside class="callout limit">
+        <h3>Quote만으로 보장되지 않는 것</h3>
+        <ul>{site.does_not_prove.map((limit) => <li>{limit}</li>)}</ul>
+      </aside>
+      <aside class="callout">
+        <h3>사용 방법</h3>
+        <p>Intel-rats는 decision structure와 review question을 학습하는 자료다. 구현 기준은 RFC 9334와 current Intel TDX/DCAP documentation으로 보완해야 한다.</p>
+      </aside>
+    </div>
+  </section>
+</Base>

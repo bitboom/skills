@@ -1,0 +1,27 @@
+{
+  "schema_version": "to-site.delivery.v1",
+  "project": "Intel RATS static reader",
+  "point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "site_pages": ["/", "/mechanism/", "/evidence/"],
+  "semantic_artifacts": [
+    "generated/site-content.json",
+    "generated/semantic-map.json",
+    "verification/projection-gate.json",
+    "verification/site-gate.json"
+  ],
+  "diagram_artifact": {
+    "renderer": "tt-a1i/archify",
+    "revision": "ed0efcc763d358b78df845182b5ed24a9d165a1c",
+    "ir": "archify/intel-tdx.sequence.json",
+    "validation": "archify/validation.json",
+    "render_check": "archify/check.txt",
+    "site_owned_svg": "public/archify/intel-tdx-sequence.svg",
+    "text_equivalent": "/mechanism/"
+  },
+  "screen_qa": "verification/screenshots/screenshot-gate.json",
+  "static_hashes": "verification/output-sha256.txt",
+  "constraints": [
+    "Educational reader; not a deployable verifier.",
+    "No local paths, credentials, or renderer toolbar HTML are published."
+  ]
+}

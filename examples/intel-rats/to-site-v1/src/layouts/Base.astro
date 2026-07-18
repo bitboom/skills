@@ -1,0 +1,41 @@
+---
+import '../styles/global.css';
+
+export interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Evidence-preserving Intel TDX remote attestation brief' } = Astro.props;
+---
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23071827%22/><path d=%22M50 16 78 27v23c0 18-11 29-28 35C33 79 22 68 22 50V27z%22 fill=%22%23175CD3%22/></svg>" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">본문으로 이동</a>
+    <div class="shell">
+      <header class="site-header">
+        <a class="brand" href="/" aria-label="Intel TDX 원격 증명 홈">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <span>TDX / ATTESTATION</span>
+        </a>
+        <nav aria-label="주 탐색">
+          <a href="/" aria-current={Astro.url.pathname === '/' ? 'page' : undefined}>결정 모델</a>
+          <a href="/mechanism/" aria-current={Astro.url.pathname.startsWith('/mechanism') ? 'page' : undefined}>생성 경로</a>
+          <a href="/evidence/" aria-current={Astro.url.pathname.startsWith('/evidence') ? 'page' : undefined}>근거와 한계</a>
+        </nav>
+      </header>
+      <main id="content"><slot /></main>
+      <footer class="site-footer">
+        <span>Point → static reader · evidence-preserving output</span>
+        <span>Intel-rats는 교육용 lens이며 deployable verifier가 아니다.</span>
+      </footer>
+    </div>
+  </body>
+</html>
