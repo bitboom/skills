@@ -1,0 +1,131 @@
+{
+  "schema_version": "to-deck.summary-structural-crosswalk.v1",
+  "point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "summary_deck": "final/summary/intel-tdx-attestation-summary.pptx",
+  "structural_deck": "final/structural/intel-tdx-attestation-structural.pptx",
+  "summary_must_see_ids": [
+    "C-001",
+    "C-004",
+    "C-005",
+    "C-007",
+    "E-013",
+    "E-015",
+    "E-018",
+    "B-004",
+    "B-006"
+  ],
+  "deliberate_summary_omissions": [
+    "Detailed PCS/PCCS operating policy",
+    "all six deployment-obligation details",
+    "full claim/source ledger",
+    "complete proof-limit enumeration"
+  ],
+  "crosswalk": [
+    {
+      "id": "C-001",
+      "summary": {
+        "slide": 1,
+        "object_id": "sm01-decision-rail"
+      },
+      "structural": {
+        "slide": 1,
+        "object_id": "st01-domain-thesis"
+      }
+    },
+    {
+      "id": "C-004",
+      "summary": {
+        "slide": 1,
+        "object_id": "sm01-verifier-result-policy"
+      },
+      "structural": {
+        "slide": 3,
+        "object_id": "st03-primary-path"
+      }
+    },
+    {
+      "id": "C-005",
+      "summary": {
+        "slide": 2,
+        "object_id": "sm02-qgs-tdqe"
+      },
+      "structural": {
+        "slide": 6,
+        "object_id": "st06-collateral-path"
+      }
+    },
+    {
+      "id": "C-007",
+      "summary": {
+        "slide": 1,
+        "object_id": "sm01-proof-limit"
+      },
+      "structural": {
+        "slide": 9,
+        "object_id": "st09-proof-boundary"
+      }
+    },
+    {
+      "id": "E-013",
+      "summary": {
+        "slide": 2,
+        "object_id": "sm02-evidence-context"
+      },
+      "structural": {
+        "slide": 5,
+        "object_id": "st-e-013"
+      }
+    },
+    {
+      "id": "E-015",
+      "summary": {
+        "slide": 1,
+        "object_id": "sm01-signed-result"
+      },
+      "structural": {
+        "slide": 7,
+        "object_id": "st-e-015"
+      }
+    },
+    {
+      "id": "E-018",
+      "summary": {
+        "slide": 2,
+        "object_id": "sm02-same-k-channel"
+      },
+      "structural": {
+        "slide": 7,
+        "object_id": "st-e-018"
+      }
+    },
+    {
+      "id": "B-004",
+      "summary": {
+        "slide": 1,
+        "object_id": "sm01-evidence-appraisal"
+      },
+      "structural": {
+        "slide": 4,
+        "object_id": "st-b-004"
+      }
+    },
+    {
+      "id": "B-006",
+      "summary": {
+        "slide": 1,
+        "object_id": "sm01-policy-action"
+      },
+      "structural": {
+        "slide": 7,
+        "object_id": "st-b-006"
+      }
+    }
+  ],
+  "semantic_invariants": [
+    "QGS transport is distinct from TDQE Quote signing",
+    "PCS authority is distinct from PCCS cache/transport",
+    "Verifier appraises Evidence; RP/KMS owns release policy",
+    "Evidence, signed Result, and release action remain distinct",
+    "failed checks, replay, expiry, and failed PoP produce NO KEY"
+  ]
+}

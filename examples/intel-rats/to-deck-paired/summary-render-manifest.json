@@ -1,0 +1,41 @@
+{
+  "schema_version": 2,
+  "renderer": "soffice",
+  "renderer_version": "LibreOffice 26.2.4.2 0229ac93fcf0d7cbc6376066c6f35021cef002dc",
+  "command": "soffice --headless --convert-to pdf",
+  "generated_at": "2026-07-18T05:09:16Z",
+  "toolchain": {
+    "renderer": "soffice",
+    "renderer_version": "LibreOffice 26.2.4.2 0229ac93fcf0d7cbc6376066c6f35021cef002dc",
+    "command": "soffice --headless --convert-to pdf",
+    "environment": "Darwin 25.5.0 arm64",
+    "pdf_rasterizer": "pdftoppm",
+    "pdf_rasterizer_version": "pdftoppm version 26.02.0",
+    "text_extractor": "markitdown",
+    "text_extractor_version": "markitdown 0.1.6",
+    "dpi": "180"
+  },
+  "producer": {
+    "kind": "script",
+    "command": "npm run build",
+    "source_path": "build-paired.mjs",
+    "source_sha256": "816529f9a43766848437752d35d846677edb4c8ac08aaca2a0fbbca3d8f19026",
+    "lockfile_path": "package-lock.json",
+    "lockfile_sha256": "cedd4f7ceb23d8642cec67b9f2ed0f9e901658eb6bb492c003933742ca3e272a"
+  },
+  "slide_count": 2,
+  "slides": [
+    {
+      "path": "final/summary/render/slide-1.png",
+      "width": 2400,
+      "height": 1350,
+      "sha256": "17843da7fe027b0868915604c1d70adee69104fb0f61ce9e36c7d0a7e7ae3205"
+    },
+    {
+      "path": "final/summary/render/slide-2.png",
+      "width": 2400,
+      "height": 1350,
+      "sha256": "58f1ed4bde44e00bc8902368159725a399706473bee3bc919cc1faafe679e1a7"
+    }
+  ]
+}

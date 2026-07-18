@@ -1,0 +1,12 @@
+{
+  "schema_version": "to-deck.paired-build.v1",
+  "point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "summary": "final/summary/intel-tdx-attestation-summary.pptx",
+  "structural": "final/structural/intel-tdx-attestation-structural.pptx",
+  "summary_slide_count": 2,
+  "structural_slide_count": 11,
+  "source_inputs": [
+    "input/to-site.input.json",
+    "input/point-result.md"
+  ]
+}

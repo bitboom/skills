@@ -1,0 +1,21 @@
+{
+  "schema_version": "to-deck.paired-gate.v1",
+  "passed": true,
+  "failures": [],
+  "point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "summary_slide_count": 2,
+  "structural_slide_count": 11,
+  "structural_coverage_rows": 28,
+  "summary_must_see_ids": [
+    "B-004",
+    "B-006",
+    "C-001",
+    "C-004",
+    "C-005",
+    "C-007",
+    "E-013",
+    "E-015",
+    "E-018"
+  ],
+  "semantic_invariant_count": 5
+}

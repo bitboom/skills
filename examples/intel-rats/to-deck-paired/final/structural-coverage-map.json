@@ -1,0 +1,410 @@
+{
+  "schema_version": "to-deck.structural-coverage.v1",
+  "point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "deck": "final/structural/intel-tdx-attestation-structural.pptx",
+  "coverage": [
+    {
+      "id": "C-001",
+      "kind": "claim",
+      "text": "Intel TDX 원격 증명은 하드웨어 Evidence 평가와 별도의 key-release 정책을 연결하는 통제다.",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "qualifiers": [
+        "선택한 trust anchor와 조직 policy가 유효하다는 가정 아래"
+      ],
+      "proof_limits": [
+        "유효한 Quote 자체가 자동 key release 권한은 아니다."
+      ],
+      "coverage_role": "primary",
+      "slide": 1,
+      "object_ids": [
+        "st01-domain-thesis"
+      ]
+    },
+    {
+      "id": "C-004",
+      "kind": "claim",
+      "text": "Verifier는 Quote와 collateral을 평가해 signed Result를 만들고, RP/KMS는 Result·time·E/K·key possession을 별도로 확인한다.",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "qualifiers": [
+        "K/D/E는 이 Point의 symbolic deployment profile이다."
+      ],
+      "proof_limits": [
+        "Result 검증은 Result-use policy와 one-time release state를 대체하지 않는다."
+      ],
+      "coverage_role": "primary",
+      "slide": 3,
+      "object_ids": [
+        "st03-primary-path",
+        "st07-result-policy"
+      ]
+    },
+    {
+      "id": "C-005",
+      "kind": "claim",
+      "text": "PCS는 signed collateral authority이고 PCCS는 cache/transport이므로, Verifier는 PCCS가 아니라 받은 bytes의 signature·chain·status·freshness를 검증한다.",
+      "source_refs": [
+        "S-003"
+      ],
+      "qualifiers": [
+        "collateral outage와 revocation은 별도 운영 policy가 필요하다."
+      ],
+      "proof_limits": [
+        "PCCS availability는 attestation validity를 보장하지 않는다."
+      ],
+      "coverage_role": "primary",
+      "slide": 6,
+      "object_ids": [
+        "st06-collateral-path"
+      ]
+    },
+    {
+      "id": "C-007",
+      "kind": "claim",
+      "text": "Quote는 보고된 TD state와 bound context를 appraisal에 제공하지만 code correctness, container identity, future safety, availability를 증명하지 않는다.",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "qualifiers": [
+        "선택한 attestation trust model과 appraisal policy 아래"
+      ],
+      "proof_limits": [
+        "workload identity와 runtime behavior에는 별도 Evidence/control이 필요하다."
+      ],
+      "coverage_role": "primary",
+      "slide": 9,
+      "object_ids": [
+        "st09-proof-boundary"
+      ]
+    },
+    {
+      "id": "N-002",
+      "kind": "model-node",
+      "label": "RP / KMS",
+      "source_refs": [
+        "S-002"
+      ],
+      "coverage_role": "primary",
+      "slide": 7,
+      "object_ids": [
+        "st-n-002"
+      ]
+    },
+    {
+      "id": "N-003",
+      "kind": "model-node",
+      "label": "Verifier",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 4,
+      "object_ids": [
+        "st-n-003"
+      ]
+    },
+    {
+      "id": "N-004",
+      "kind": "model-node",
+      "label": "TD / Attester",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 5,
+      "object_ids": [
+        "st-n-004"
+      ]
+    },
+    {
+      "id": "N-005",
+      "kind": "model-node",
+      "label": "QGS daemon",
+      "source_refs": [
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 5,
+      "object_ids": [
+        "st-n-005"
+      ]
+    },
+    {
+      "id": "N-006",
+      "kind": "model-node",
+      "label": "TDQE",
+      "source_refs": [
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 5,
+      "object_ids": [
+        "st-n-006"
+      ]
+    },
+    {
+      "id": "N-008",
+      "kind": "model-node",
+      "label": "PCCS cache",
+      "source_refs": [
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 6,
+      "object_ids": [
+        "st-n-008"
+      ]
+    },
+    {
+      "id": "E-013",
+      "kind": "model-edge",
+      "label": "Evidence + key + request context",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 5,
+      "object_ids": [
+        "st-e-013"
+      ]
+    },
+    {
+      "id": "E-014",
+      "kind": "model-edge",
+      "label": "signed collateral",
+      "source_refs": [
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 6,
+      "object_ids": [
+        "st-e-014"
+      ]
+    },
+    {
+      "id": "E-015",
+      "kind": "model-edge",
+      "label": "signed Result",
+      "source_refs": [
+        "S-002"
+      ],
+      "coverage_role": "primary",
+      "slide": 7,
+      "object_ids": [
+        "st-e-015"
+      ]
+    },
+    {
+      "id": "E-018",
+      "kind": "model-edge",
+      "label": "same key-bound secret channel",
+      "source_refs": [
+        "S-002"
+      ],
+      "coverage_role": "primary",
+      "slide": 7,
+      "object_ids": [
+        "st-e-018"
+      ]
+    },
+    {
+      "id": "B-004",
+      "kind": "model-boundary",
+      "label": "Evidence appraisal boundary",
+      "source_refs": [
+        "S-002"
+      ],
+      "coverage_role": "primary",
+      "slide": 4,
+      "object_ids": [
+        "st-b-004"
+      ]
+    },
+    {
+      "id": "B-006",
+      "kind": "model-boundary",
+      "label": "Result-use boundary",
+      "source_refs": [
+        "S-002"
+      ],
+      "coverage_role": "primary",
+      "slide": 7,
+      "object_ids": [
+        "st-b-006"
+      ]
+    },
+    {
+      "id": "NP-001",
+      "kind": "does-not-prove",
+      "text": "code correctness or absence of vulnerabilities",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 9,
+      "object_ids": [
+        "st09-limit-1"
+      ]
+    },
+    {
+      "id": "NP-002",
+      "kind": "does-not-prove",
+      "text": "automatic identity of a container or process inside the TD",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 9,
+      "object_ids": [
+        "st09-limit-2"
+      ]
+    },
+    {
+      "id": "NP-003",
+      "kind": "does-not-prove",
+      "text": "safe future behavior after attestation",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 9,
+      "object_ids": [
+        "st09-limit-3"
+      ]
+    },
+    {
+      "id": "NP-004",
+      "kind": "does-not-prove",
+      "text": "availability or elimination of all side-channel, I/O, physical, and supply-chain risks",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 9,
+      "object_ids": [
+        "st09-limit-4"
+      ]
+    },
+    {
+      "id": "O-001",
+      "kind": "deployment-obligation",
+      "text": "freshness",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 8,
+      "object_ids": [
+        "st08-obligation-1"
+      ]
+    },
+    {
+      "id": "O-002",
+      "kind": "deployment-obligation",
+      "text": "request/audience binding",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 8,
+      "object_ids": [
+        "st08-obligation-2"
+      ]
+    },
+    {
+      "id": "O-003",
+      "kind": "deployment-obligation",
+      "text": "public-key binding",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 8,
+      "object_ids": [
+        "st08-obligation-3"
+      ]
+    },
+    {
+      "id": "O-004",
+      "kind": "deployment-obligation",
+      "text": "proof of possession",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 8,
+      "object_ids": [
+        "st08-obligation-4"
+      ]
+    },
+    {
+      "id": "O-005",
+      "kind": "deployment-obligation",
+      "text": "authenticated Result",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 8,
+      "object_ids": [
+        "st08-obligation-5"
+      ]
+    },
+    {
+      "id": "O-006",
+      "kind": "deployment-obligation",
+      "text": "one-time atomic state",
+      "source_refs": [
+        "S-002",
+        "S-003"
+      ],
+      "coverage_role": "primary",
+      "slide": 8,
+      "object_ids": [
+        "st08-obligation-6"
+      ]
+    },
+    {
+      "id": "S-002",
+      "kind": "source",
+      "title": "RFC 9334 — Remote ATtestation procedureS (RATS) Architecture",
+      "locator": "Sections 2–4: roles, Evidence, appraisal and relying-party results",
+      "canonical_url": "https://www.rfc-editor.org/rfc/rfc9334",
+      "coverage_role": "source-footer",
+      "slide": 11,
+      "object_ids": [
+        "st11-source-ledger"
+      ]
+    },
+    {
+      "id": "S-003",
+      "kind": "source",
+      "title": "Intel SGX Data Center Attestation Primitives",
+      "locator": "QuoteGeneration and QuoteVerification implementation and collateral workflow",
+      "canonical_url": "https://github.com/intel/SGXDataCenterAttestationPrimitives",
+      "coverage_role": "source-footer",
+      "slide": 11,
+      "object_ids": [
+        "st11-source-ledger"
+      ]
+    }
+  ]
+}

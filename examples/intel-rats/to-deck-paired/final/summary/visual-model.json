@@ -1,0 +1,70 @@
+{
+  "schema_version": "to-deck.visual-model.v1",
+  "deck": "final/summary/intel-tdx-attestation-summary.pptx",
+  "point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "objects": [
+    {
+      "id": "sm01-decision-rail",
+      "point_ids": [
+        "C-001"
+      ],
+      "slide": 1
+    },
+    {
+      "id": "sm01-verifier-result-policy",
+      "point_ids": [
+        "C-004"
+      ],
+      "slide": 1
+    },
+    {
+      "id": "sm02-qgs-tdqe",
+      "point_ids": [
+        "C-005"
+      ],
+      "slide": 2
+    },
+    {
+      "id": "sm01-proof-limit",
+      "point_ids": [
+        "C-007"
+      ],
+      "slide": 1
+    },
+    {
+      "id": "sm02-evidence-context",
+      "point_ids": [
+        "E-013"
+      ],
+      "slide": 2
+    },
+    {
+      "id": "sm01-signed-result",
+      "point_ids": [
+        "E-015"
+      ],
+      "slide": 1
+    },
+    {
+      "id": "sm02-same-k-channel",
+      "point_ids": [
+        "E-018"
+      ],
+      "slide": 2
+    },
+    {
+      "id": "sm01-evidence-appraisal",
+      "point_ids": [
+        "B-004"
+      ],
+      "slide": 1
+    },
+    {
+      "id": "sm01-policy-action",
+      "point_ids": [
+        "B-006"
+      ],
+      "slide": 1
+    }
+  ]
+}

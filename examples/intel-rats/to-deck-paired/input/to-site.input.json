@@ -1,0 +1,84 @@
+{
+  "schema_version": "to-site.input.v1",
+  "source_manifest": {
+    "point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+    "language": "ko-KR",
+    "canonical_topic": "Intel TDX Remote Attestation"
+  },
+  "title": "Intel TDX 원격 증명",
+  "thesis": "Verifier는 증거를 평가하고, RP/KMS는 별도 정책으로 비밀 공개를 결정한다.",
+  "claims": [
+    {
+      "id": "C-001",
+      "text": "Intel TDX 원격 증명은 하드웨어 Evidence 평가와 별도의 key-release 정책을 연결하는 통제다.",
+      "qualifiers": ["선택한 trust anchor와 조직 policy가 유효하다는 가정 아래"],
+      "proof_limits": ["유효한 Quote 자체가 자동 key release 권한은 아니다."],
+      "evidence_status": "source-confirmed",
+      "source_refs": ["S-002", "S-003"]
+    },
+    {
+      "id": "C-004",
+      "text": "Verifier는 Quote와 collateral을 평가해 signed Result를 만들고, RP/KMS는 Result·time·E/K·key possession을 별도로 확인한다.",
+      "qualifiers": ["K/D/E는 이 Point의 symbolic deployment profile이다."],
+      "proof_limits": ["Result 검증은 Result-use policy와 one-time release state를 대체하지 않는다."],
+      "evidence_status": "source-confirmed",
+      "source_refs": ["S-002", "S-003"]
+    },
+    {
+      "id": "C-005",
+      "text": "PCS는 signed collateral authority이고 PCCS는 cache/transport이므로, Verifier는 PCCS가 아니라 받은 bytes의 signature·chain·status·freshness를 검증한다.",
+      "qualifiers": ["collateral outage와 revocation은 별도 운영 policy가 필요하다."],
+      "proof_limits": ["PCCS availability는 attestation validity를 보장하지 않는다."],
+      "evidence_status": "source-confirmed",
+      "source_refs": ["S-003"]
+    },
+    {
+      "id": "C-007",
+      "text": "Quote는 보고된 TD state와 bound context를 appraisal에 제공하지만 code correctness, container identity, future safety, availability를 증명하지 않는다.",
+      "qualifiers": ["선택한 attestation trust model과 appraisal policy 아래"],
+      "proof_limits": ["workload identity와 runtime behavior에는 별도 Evidence/control이 필요하다."],
+      "evidence_status": "source-confirmed",
+      "source_refs": ["S-002", "S-003"]
+    }
+  ],
+  "sources": [
+    {
+      "id": "S-002",
+      "title": "RFC 9334 — Remote ATtestation procedureS (RATS) Architecture",
+      "canonical_url": "https://www.rfc-editor.org/rfc/rfc9334",
+      "locator": "Sections 2–4: roles, Evidence, appraisal and relying-party results"
+    },
+    {
+      "id": "S-003",
+      "title": "Intel SGX Data Center Attestation Primitives",
+      "canonical_url": "https://github.com/intel/SGXDataCenterAttestationPrimitives",
+      "locator": "QuoteGeneration and QuoteVerification implementation and collateral workflow"
+    }
+  ],
+  "models": {
+    "nodes": [
+      {"id": "N-002", "label": "RP / KMS", "source_refs": ["S-002"]},
+      {"id": "N-003", "label": "Verifier", "source_refs": ["S-002", "S-003"]},
+      {"id": "N-004", "label": "TD / Attester", "source_refs": ["S-002", "S-003"]},
+      {"id": "N-005", "label": "QGS daemon", "source_refs": ["S-003"]},
+      {"id": "N-006", "label": "TDQE", "source_refs": ["S-003"]},
+      {"id": "N-008", "label": "PCCS cache", "source_refs": ["S-003"]}
+    ],
+    "edges": [
+      {"id": "E-013", "from": "N-002", "to": "N-003", "label": "Evidence + key + request context", "source_refs": ["S-002", "S-003"]},
+      {"id": "E-014", "from": "N-008", "to": "N-003", "label": "signed collateral", "source_refs": ["S-003"]},
+      {"id": "E-015", "from": "N-003", "to": "N-002", "label": "signed Result", "source_refs": ["S-002"]},
+      {"id": "E-018", "from": "N-002", "to": "N-004", "label": "same key-bound secret channel", "source_refs": ["S-002"]}
+    ],
+    "boundaries": [
+      {"id": "B-004", "label": "Evidence appraisal boundary", "source_refs": ["S-002"]},
+      {"id": "B-006", "label": "Result-use boundary", "source_refs": ["S-002"]}
+    ]
+  },
+  "does_not_prove": [
+    "code correctness or absence of vulnerabilities",
+    "automatic identity of a container or process inside the TD",
+    "safe future behavior after attestation",
+    "availability or elimination of all side-channel, I/O, physical, and supply-chain risks"
+  ]
+}

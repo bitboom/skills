@@ -1,0 +1,12 @@
+{
+  "name": "intel-rats-to-deck-paired",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build-paired.mjs",
+    "validate": "python3 validate-paired.py"
+  },
+  "dependencies": {
+    "pptxgenjs": "^4.0.1"
+  }
+}

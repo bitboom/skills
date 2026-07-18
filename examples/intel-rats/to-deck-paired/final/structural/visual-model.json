@@ -1,0 +1,231 @@
+{
+  "schema_version": "to-deck.visual-model.v1",
+  "deck": "final/structural/intel-tdx-attestation-structural.pptx",
+  "point_sha256": "59bb8e0d71c321cc18cb4880e27dbbe7966511257a4d4c33e7e7a538fbc38891",
+  "objects": [
+    {
+      "id": "st01-domain-thesis",
+      "point_ids": [
+        "C-001"
+      ],
+      "slide": 1,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st03-primary-path",
+      "point_ids": [
+        "C-004"
+      ],
+      "slide": 3,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st06-collateral-path",
+      "point_ids": [
+        "C-005"
+      ],
+      "slide": 6,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st09-proof-boundary",
+      "point_ids": [
+        "C-007"
+      ],
+      "slide": 9,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st-n-002",
+      "point_ids": [
+        "N-002"
+      ],
+      "slide": 7,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st-n-003",
+      "point_ids": [
+        "N-003"
+      ],
+      "slide": 4,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st-n-004",
+      "point_ids": [
+        "N-004"
+      ],
+      "slide": 5,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st-n-005",
+      "point_ids": [
+        "N-005"
+      ],
+      "slide": 5,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st-n-006",
+      "point_ids": [
+        "N-006"
+      ],
+      "slide": 5,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st-n-008",
+      "point_ids": [
+        "N-008"
+      ],
+      "slide": 6,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st-e-013",
+      "point_ids": [
+        "E-013"
+      ],
+      "slide": 5,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st-e-014",
+      "point_ids": [
+        "E-014"
+      ],
+      "slide": 6,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st-e-015",
+      "point_ids": [
+        "E-015"
+      ],
+      "slide": 7,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st-e-018",
+      "point_ids": [
+        "E-018"
+      ],
+      "slide": 7,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st-b-004",
+      "point_ids": [
+        "B-004"
+      ],
+      "slide": 4,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st-b-006",
+      "point_ids": [
+        "B-006"
+      ],
+      "slide": 7,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st09-limit-1",
+      "point_ids": [
+        "NP-001"
+      ],
+      "slide": 9,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st09-limit-2",
+      "point_ids": [
+        "NP-002"
+      ],
+      "slide": 9,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st09-limit-3",
+      "point_ids": [
+        "NP-003"
+      ],
+      "slide": 9,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st09-limit-4",
+      "point_ids": [
+        "NP-004"
+      ],
+      "slide": 9,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st08-obligation-1",
+      "point_ids": [
+        "O-001"
+      ],
+      "slide": 8,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st08-obligation-2",
+      "point_ids": [
+        "O-002"
+      ],
+      "slide": 8,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st08-obligation-3",
+      "point_ids": [
+        "O-003"
+      ],
+      "slide": 8,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st08-obligation-4",
+      "point_ids": [
+        "O-004"
+      ],
+      "slide": 8,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st08-obligation-5",
+      "point_ids": [
+        "O-005"
+      ],
+      "slide": 8,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st08-obligation-6",
+      "point_ids": [
+        "O-006"
+      ],
+      "slide": 8,
+      "coverage_role": "primary"
+    },
+    {
+      "id": "st11-source-ledger",
+      "point_ids": [
+        "S-002"
+      ],
+      "slide": 11,
+      "coverage_role": "source-footer"
+    },
+    {
+      "id": "st11-source-ledger",
+      "point_ids": [
+        "S-003"
+      ],
+      "slide": 11,
+      "coverage_role": "source-footer"
+    }
+  ]
+}
